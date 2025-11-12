@@ -91,12 +91,8 @@ namespace Pengguna.Controllers
 
                 user.ProfileImagePath = "/uploads/" + uniqueFileName;
             }
-
-            // Simpan perubahan
             _context.Users.Update(user);
             _context.SaveChanges();
-
-            // Perbarui session
             HttpContext.Session.SetString("Username", user.Username);
 
             TempData["Success"] = "Profil berhasil diperbarui!";
@@ -110,13 +106,11 @@ namespace Pengguna.Controllers
             ViewData["ActivePage"] = "Index";
             return View();
         }
-        //do Order Servie
         public IActionResult Order()
         {
             ViewData["ActivePage"] = "Order";
             return View();
         }
-        // Di dalam CustomerController.cs
 
         [HttpPost]
         public IActionResult SubmitOrder(WaitingResponOrder model)
@@ -124,7 +118,7 @@ namespace Pengguna.Controllers
             if (ModelState.IsValid)
             {
                 var customerName = HttpContext.Session.GetString("Username");
-                model.NamaCustomer = customerName; // penting!
+                model.NamaCustomer = customerName; 
 
                 model.Status = "Menunggu Teknisi";
                 model.IsTaken = false;
@@ -137,17 +131,13 @@ namespace Pengguna.Controllers
             return View("Order", model);
         }
 
-
         [HttpPost]
-        // Samakan parameter menjadi 'id' agar sesuai dengan view
         public IActionResult CancelOrder(int id)
         {
             var order = _context.WaitingResponOrders.FirstOrDefault(o => o.Id == id);
 
             if (order == null)
                 return NotFound();
-
-            // Logika ini sudah benar, status "Diterima Teknisi" akan di-set oleh Teknisi
             if (order.Status == "Menunggu Teknisi")
             {
                 order.Status = "Dibatalkan";
@@ -166,27 +156,18 @@ namespace Pengguna.Controllers
 
         public IActionResult WaitingOrder()
         {
-            // Ambil nama user yang sedang login dari session
             var customerName = HttpContext.Session.GetString("Username");
-
-            // Kalau belum login, arahkan ke halaman login
             if (string.IsNullOrEmpty(customerName))
             {
                 return RedirectToAction("Login", "Account");
             }
-
-            // Ambil semua order milik customer ini (case-insensitive)
             var myOrders = _context.WaitingResponOrders
                 .Where(o => o.NamaCustomer != null &&
                             o.NamaCustomer.Trim().ToLower() == customerName.Trim().ToLower())
                 .OrderByDescending(o => o.Id)
                 .ToList();
-
-            // Kirim hasil ke view
             return View(myOrders);
         }
-
-
     }
 }
    

@@ -103,8 +103,6 @@ namespace Pengguna.Controllers
         }
         public IActionResult JobList()
         {
-            // [FIX] Tampilkan job yang 'Menunggu Teknisi' ATAU 'Menunggu Persetujuan Cancel'
-            // Ini agar logik di view (joblist.cshtml) bisa berfungsi
             var waitingOrders = _context.WaitingResponOrders
                                         .Where(o => o.Status == "Menunggu Teknisi" || o.Status == "Menunggu Persetujuan Cancel")
                                         .ToList();
@@ -120,18 +118,9 @@ namespace Pengguna.Controllers
             var order = _context.WaitingResponOrders.FirstOrDefault(o => o.Id == id);
             if (order != null)
             {
-                // [LOGIC FIX] Jangan hapus order. Update saja statusnya.
-                // Ini adalah kunci sinkronisasi.
-
                 order.Status = "Diterima Teknisi";
-                order.IsTaken = true; // Set flag 'IsTaken'
-
-                // [USER REQUEST] Ambil nama teknisi dari user yang login
+                order.IsTaken = true; 
                 order.NamaTeknisi = User.Identity?.Name ?? "Technician";
-
-                // Hapus kode yang memindahkan ke ActiveOrders
-                // _context.ActiveOrders.Add(active);
-                // _context.WaitingResponOrders.Remove(order);
 
                 _context.SaveChanges();
             }
@@ -140,7 +129,6 @@ namespace Pengguna.Controllers
         }
 
         [HttpPost]
-        // [FIX] Samakan parameter menjadi 'id' agar sesuai dengan form di view
         public IActionResult ApproveCancel(int id)
         {
             var order = _context.WaitingResponOrders.FirstOrDefault(o => o.Id == id);
@@ -149,21 +137,18 @@ namespace Pengguna.Controllers
                 order.Status = "Dibatalkan oleh Teknisi";
                 _context.SaveChanges();
             }
-            // [FIX] Redirect kembali ke JobList, bukan ActiveOrders
             return RedirectToAction("JobList");
         }
 
         [HttpPost]
-        // [FIX] Samakan parameter menjadi 'id' agar sesuai dengan form di view
         public IActionResult RejectCancel(int id)
         {
             var order = _context.WaitingResponOrders.FirstOrDefault(o => o.Id == id);
             if (order != null)
             {
-                order.Status = "Aktif (Lanjut Service)"; // Status baru yang lebih jelas
+                order.Status = "Aktif (Lanjut Service)"; 
                 _context.SaveChanges();
             }
-            // [FIX] Redirect kembali ke JobList, bukan ActiveOrders
             return RedirectToAction("JobList");
         }
 
