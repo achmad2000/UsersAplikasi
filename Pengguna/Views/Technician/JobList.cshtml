@@ -1,36 +1,106 @@
 ﻿@model IEnumerable<Pengguna.Models.WaitingResponOrder>
+
 @{
     ViewData["Title"] = "Report Order";
 }
-<div class="container mt-4">
-    <h4 class="text-center mb-4">Daftar Job Tersedia</h4>
 
-    <table class="table table-bordered shadow-sm">
-        <thead class="table-primary text-center">
-            <tr>
-                <th>Nama Customer</th>
-                <th>Item</th>
-                <th>Alamat</th>
-                <th>NomorWhatsApp</th>
-                <th>Aksi</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var order in Model)
+<div class="container mt-4">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-primary text-white text-center rounded-top-3">
+            <h4 class="mb-0">Daftar Job Tersedia</h4>
+        </div>
+
+        <div class="card-body p-4" style="background-color: #f9f9ff;">
+            @if (Model != null && Model.Any())
             {
-                <tr>
-                    <td>@order.NamaCustomer</td>
-                    <td>@order.ItemService</td>
-                    <td>@order.Alamat</td>
-                    <td>@order.NoWA</td>
-                    <td class="text-center">
-                        <form asp-action="TakeJob" method="post">
-                            <input type="hidden" name="id" value="@order.Id" />
-                            <button type="submit" class="btn btn-success btn-sm">Ambil Job</button>
-                        </form>
-                    </td>
-                </tr>
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle text-center mb-0">
+                        <thead class="table-primary">
+                            <tr>
+                                <th>Nama Customer</th>
+                                <th>Item</th>
+                                <th>Alamat</th>
+                                <th>Nomor WhatsApp</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model)
+                            {
+                                <tr>
+                                    <td>@order.NamaCustomer</td>
+                                    <td>@order.ItemService</td>
+                                    <td>@order.Alamat</td>
+                                    <td>@order.NoWA</td>
+                                    <td>
+                                        @if (order.Status == "Menunggu Teknisi")
+                                        {
+                                            <span class="badge bg-warning text-dark">@order.Status</span>
+                                        }
+                                        else if (order.Status == "Diterima Teknisi")
+                                        {
+                                            <span class="badge bg-primary">@order.Status</span>
+                                        }
+                                        else if (order.Status == "Menunggu Persetujuan Cancel")
+                                        {
+                                            <span class="badge bg-secondary">@order.Status</span>
+                                        }
+                                        else if (order.Status == "Dibatalkan")
+                                        {
+                                            <span class="badge bg-danger">@order.Status</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-info">@order.Status</span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @* --- TOMBOL AMBIL JOB --- *@
+                                        @if (order.Status == "Menunggu Teknisi")
+                                        {
+                                            <form asp-action="TakeJob" asp-controller="Technician" method="post"
+                                                  onsubmit="return confirm('Ambil job ini?');" class="d-inline">
+                                                <input type="hidden" name="id" value="@order.Id" />
+                                                <button type="submit" class="btn btn-success btn-sm">
+                                                    <i class="bi bi-hand-index-thumb"></i> Ambil Job
+                                                </button>
+                                            </form>
+                                        }
+
+                                        @* --- TOMBOL TERIMA / TOLAK CANCEL --- *@
+                                        @if (order.Status == "Menunggu Persetujuan Cancel")
+                                        {
+                                            <form asp-action="ApproveCancel" asp-controller="Technician" method="post" class="d-inline"
+                                                  onsubmit="return confirm('Terima pembatalan order ini?');">
+                                                <input type="hidden" name="id" value="@order.Id" />
+                                                <button type="submit" class="btn btn-outline-success btn-sm">
+                                                    <i class="bi bi-check-circle"></i> Setuju Cancel
+                                                </button>
+                                            </form>
+
+                                            <form asp-action="RejectCancel" asp-controller="Technician" method="post" class="d-inline"
+                                                  onsubmit="return confirm('Tolak pembatalan order ini?');">
+                                                <input type="hidden" name="id" value="@order.Id" />
+                                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                    <i class="bi bi-x-circle"></i> Tolak Cancel
+                                                </button>
+                                            </form>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
             }
-        </tbody>
-    </table>
+            else
+            {
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-info-circle"></i> Belum ada job yang tersedia saat ini.
+                </div>
+            }
+        </div>
+    </div>
 </div>

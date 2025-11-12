@@ -103,7 +103,12 @@ namespace Pengguna.Controllers
         }
         public IActionResult JobList()
         {
-            var waitingOrders = _context.WaitingResponOrders.Where(o => !o.IsTaken).ToList();
+            // [FIX] Tampilkan job yang 'Menunggu Teknisi' ATAU 'Menunggu Persetujuan Cancel'
+            // Ini agar logik di view (joblist.cshtml) bisa berfungsi
+            var waitingOrders = _context.WaitingResponOrders
+                                        .Where(o => o.Status == "Menunggu Teknisi" || o.Status == "Menunggu Persetujuan Cancel")
+                                        .ToList();
+
             ViewData["ActivePage"] = "JobList";
             return View(waitingOrders);
         }
@@ -115,21 +120,50 @@ namespace Pengguna.Controllers
             var order = _context.WaitingResponOrders.FirstOrDefault(o => o.Id == id);
             if (order != null)
             {
-                var active = new ActiveOrder
-                {
-                    NamaCustomer = order.NamaCustomer,
-                    ItemService = order.ItemService,
-                    NoWA = order.NoWA,
-                    Alamat = order.Alamat,
-                    DeskripsiProblem = order.DeskripsiProblem,
-                    TeknisiNama = User.Identity?.Name ?? "Technician"
-                };
+                // [LOGIC FIX] Jangan hapus order. Update saja statusnya.
+                // Ini adalah kunci sinkronisasi.
 
-                _context.ActiveOrders.Add(active);
-                _context.WaitingResponOrders.Remove(order);
+                order.Status = "Diterima Teknisi";
+                order.IsTaken = true; // Set flag 'IsTaken'
+
+                // [USER REQUEST] Ambil nama teknisi dari user yang login
+                order.NamaTeknisi = User.Identity?.Name ?? "Technician";
+
+                // Hapus kode yang memindahkan ke ActiveOrders
+                // _context.ActiveOrders.Add(active);
+                // _context.WaitingResponOrders.Remove(order);
+
                 _context.SaveChanges();
             }
 
+            return RedirectToAction("JobList");
+        }
+
+        [HttpPost]
+        // [FIX] Samakan parameter menjadi 'id' agar sesuai dengan form di view
+        public IActionResult ApproveCancel(int id)
+        {
+            var order = _context.WaitingResponOrders.FirstOrDefault(o => o.Id == id);
+            if (order != null)
+            {
+                order.Status = "Dibatalkan oleh Teknisi";
+                _context.SaveChanges();
+            }
+            // [FIX] Redirect kembali ke JobList, bukan ActiveOrders
+            return RedirectToAction("JobList");
+        }
+
+        [HttpPost]
+        // [FIX] Samakan parameter menjadi 'id' agar sesuai dengan form di view
+        public IActionResult RejectCancel(int id)
+        {
+            var order = _context.WaitingResponOrders.FirstOrDefault(o => o.Id == id);
+            if (order != null)
+            {
+                order.Status = "Aktif (Lanjut Service)"; // Status baru yang lebih jelas
+                _context.SaveChanges();
+            }
+            // [FIX] Redirect kembali ke JobList, bukan ActiveOrders
             return RedirectToAction("JobList");
         }
 

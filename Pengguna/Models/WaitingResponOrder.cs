@@ -17,6 +17,7 @@ namespace Pengguna.Models
         public bool IsTaken { get; set; } = false;
         public string Status { get; set; } = "Menunggu Teknisi";
         public int? TechnicianId { get; set; }
+        public string? NamaTeknisi { get; set; }
         public DateTime? CancelRequestedAt { get; set; }
     }
 

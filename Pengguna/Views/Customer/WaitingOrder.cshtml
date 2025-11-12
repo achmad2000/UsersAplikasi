@@ -1,9 +1,110 @@
-﻿@{
+﻿@model IEnumerable<Pengguna.Models.WaitingResponOrder>
+@{
     Layout = "_LayoutCustomer";
     ViewData["Title"] = "WaitingOrder";
     ViewData["ActivePage"] = "Order";
 }
-<div class="text-center mt-5">
-    <img src="~/images/Waiting.jpg" style="width:150px;" alt="Waiting">
-    <p class="fw-semibold">Mohon maaf membuat anda menunggu.<br>Teknisi kami akan segera ke tempat anda.</p>
+
+<div class="container mt-4">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-primary text-white text-center rounded-top-3">
+            <h4 class="mb-0">Daftar Pesanan Anda</h4>
+        </div>
+
+        <div class="card-body p-4" style="background-color: #f9f9ff;">
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle text-center mb-0">
+                        <thead class="table-primary">
+                            <tr>
+                                <th>Item</th>
+                                <th>Alamat</th>
+                                <th>Teknisi</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var order in Model)
+                            {
+                                <tr>
+                                    <td>@order.ItemService</td>
+                                    <td>@order.Alamat</td>
+                                    <td>@(order.NamaTeknisi ?? "-")</td>
+
+                                    <td>
+                                        @if (order.Status?.Trim() == "Menunggu Teknisi")
+                                        {
+                                            <span class="badge bg-warning text-dark">@order.Status</span>
+                                        }
+                                        else if (order.Status?.Trim() == "Diterima Teknisi" || order.Status?.Trim() == "Aktif (Lanjut Service)")
+                                        {
+                                            <span class="badge bg-primary">@order.Status</span>
+                                        }
+                                        else if (order.Status?.Trim() == "Menunggu Persetujuan Cancel")
+                                        {
+                                            <span class="badge bg-secondary">@order.Status</span>
+                                        }
+                                        else if (order.Status?.Trim() == "Dibatalkan" || order.Status?.Trim() == "Dibatalkan oleh Teknisi")
+                                        {
+                                            <span class="badge bg-danger">@order.Status</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-info">@order.Status</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (order.Status?.Trim() == "Menunggu Teknisi")
+                                        {
+                                            <form asp-action="CancelOrder" asp-controller="Customer" method="post"
+                                                  onsubmit="return confirm('Yakin ingin membatalkan order ini?');"
+                                                  class="d-inline">
+                                                <input type="hidden" name="id" value="@order.Id" />
+                                                <button type="submit" class="btn btn-danger btn-sm">
+                                                    <i class="bi bi-x-circle"></i> Batalkan Order
+                                                </button>
+                                            </form>
+                                        }
+                                        else if (order.Status?.Trim() == "Diterima Teknisi" || order.Status?.Trim() == "Aktif (Lanjut Service)")
+                                        {
+                                            <form asp-action="CancelOrder" asp-controller="Customer" method="post"
+                                                  onsubmit="return confirm('Ajukan pembatalan order ke teknisi?');"
+                                                  class="d-inline">
+                                                <input type="hidden" name="id" value="@order.Id" />
+                                                <button type="submit" class="btn btn-outline-warning btn-sm">
+                                                    <i class="bi bi-hourglass-split"></i> Ajukan Cancel
+                                                </button>
+                                            </form>
+                                        }
+                                        else if (order.Status?.Trim() == "Menunggu Persetujuan Cancel")
+                                        {
+                                            <button class="btn btn-secondary btn-sm" disabled>
+                                                <i class="bi bi-clock"></i> Menunggu Persetujuan
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-secondary btn-sm" disabled>
+                                                <i class="bi bi-dash-circle"></i> Tidak Tersedia
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-info-circle"></i> Anda belum memiliki order aktif.
+                </div>
+            }
+        </div>
+    </div>
 </div>

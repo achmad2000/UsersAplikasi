@@ -105,17 +105,31 @@ namespace Pengguna.Controllers
             return RedirectToAction("Profile");
 
         }
+        public IActionResult Index()
+        {
+            ViewData["ActivePage"] = "Index";
+            return View();
+        }
         //do Order Servie
         public IActionResult Order()
         {
             ViewData["ActivePage"] = "Order";
             return View();
         }
-            [HttpPost]
+        // Di dalam CustomerController.cs
+
+        [HttpPost]
         public IActionResult SubmitOrder(WaitingResponOrder model)
         {
             if (ModelState.IsValid)
             {
+                var customerName = HttpContext.Session.GetString("Username");
+                model.NamaCustomer = customerName; // penting!
+
+                model.Status = "Menunggu Teknisi";
+                model.IsTaken = false;
+                model.NamaTeknisi = null;
+
                 _context.WaitingResponOrders.Add(model);
                 _context.SaveChanges();
                 return RedirectToAction("WaitingOrder");
@@ -123,10 +137,55 @@ namespace Pengguna.Controllers
             return View("Order", model);
         }
 
+
+        [HttpPost]
+        // Samakan parameter menjadi 'id' agar sesuai dengan view
+        public IActionResult CancelOrder(int id)
+        {
+            var order = _context.WaitingResponOrders.FirstOrDefault(o => o.Id == id);
+
+            if (order == null)
+                return NotFound();
+
+            // Logika ini sudah benar, status "Diterima Teknisi" akan di-set oleh Teknisi
+            if (order.Status == "Menunggu Teknisi")
+            {
+                order.Status = "Dibatalkan";
+                _context.SaveChanges();
+                TempData["Message"] = "Pesanan berhasil dibatalkan.";
+            }
+            else if (order.Status == "Diterima Teknisi" || order.Status == "Aktif (Lanjut Service)")
+            {
+                order.Status = "Menunggu Persetujuan Cancel";
+                _context.SaveChanges();
+                TempData["Message"] = "Permintaan pembatalan telah dikirim ke teknisi.";
+            }
+
+            return RedirectToAction("WaitingOrder");
+        }
+
         public IActionResult WaitingOrder()
         {
-            return View();
+            // Ambil nama user yang sedang login dari session
+            var customerName = HttpContext.Session.GetString("Username");
+
+            // Kalau belum login, arahkan ke halaman login
+            if (string.IsNullOrEmpty(customerName))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Ambil semua order milik customer ini (case-insensitive)
+            var myOrders = _context.WaitingResponOrders
+                .Where(o => o.NamaCustomer != null &&
+                            o.NamaCustomer.Trim().ToLower() == customerName.Trim().ToLower())
+                .OrderByDescending(o => o.Id)
+                .ToList();
+
+            // Kirim hasil ke view
+            return View(myOrders);
         }
+
 
     }
 }
