@@ -1,0 +1,55 @@
+﻿@{
+    Layout = "~/Views/Shared/_AuthLayout.cshtml";
+    ViewData["Title"] = "Login";
+}
+
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap-icons.css" />
+
+<div class="d-flex align-items-center justify-content-center vh-100" style="background: linear-gradient(135deg, #007bff, #6610f2);">
+    <div class="card shadow-lg p-4 rounded-4" style="width: 420px; border: none;">
+        <div class="text-center mb-3">
+            <i class="bi bi-person-circle text-primary" style="font-size: 4rem;"></i>
+            <h4 class="fw-bold mt-2">Masuk ke Akun</h4>
+            <p class="text-muted mb-0">Silahkan Klik Peran Anda</p>
+        </div>
+
+        <form asp-action="Login" method="post">
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control rounded-pill" name="email" placeholder="Masukkan email Anda" required />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input type="password" class="form-control rounded-pill" name="password" placeholder="Masukkan password" required />
+            </div>
+
+            <div class="mb-3 text-center">
+                <div class="btn-group" role="group" aria-label="Role selection">
+                    <input type="radio" class="btn-check" name="role" id="roleTechnician" value="Technician">
+                    <label class="btn btn-outline-primary" for="roleTechnician">Technician</label>
+
+                    <input type="radio" class="btn-check" name="role" id="roleCustomer" value="Customer" checked>
+                    <label class="btn btn-outline-primary" for="roleCustomer">Customer</label>
+                </div>
+            </div>
+
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger text-center">@ViewBag.Error</div>
+            }
+
+            <div class="d-grid mb-3">
+                <button type="submit" class="btn btn-primary rounded-pill">Login</button>
+            </div>
+
+            <div class="text-center">
+                <small class="text-muted">
+                    Belum punya akun?
+                    <a asp-action="Register" class="text-primary fw-semibold text-decoration-none">Daftar Sekarang</a>
+                </small>
+            </div>
+        </form>
+    </div>
+</div>

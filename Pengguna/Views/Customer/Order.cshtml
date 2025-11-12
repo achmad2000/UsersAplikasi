@@ -1,0 +1,95 @@
+﻿@{
+    Layout = "_LayoutCustomer";
+    ViewData["Title"] = "Order";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <!-- Form Order -->
+            <div class="card shadow-lg border-0 rounded-3" id="orderFormCard">
+                <div class="card-header bg-primary text-white text-center rounded-top-3">
+                    <h4 class="mb-0">Order</h4>
+                </div>
+                <div class="card-body p-4" style="background-color: #d5d5ff;">
+                    <form id="orderForm" asp-controller="Customer" asp-action="SubmitOrder" method="post" enctype="multipart/form-data">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Nama Customer</label>
+                                <input type="text" class="form-control" name="NamaCustomer" placeholder="Masukkan nama customer..." required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Item</label>
+                                <select class="form-select" name="ItemService" required>
+                                    <option value="">Pilih Item...</option>
+                                    <option value="AC">AC</option>
+                                    <option value="Kulkas">Kulkas</option>
+                                    <option value="Mesin Cuci">Mesin Cuci</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Jadwal Service</label>
+                                <input type="datetime-local" class="form-control" name="JadwalService" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">No. WA</label>
+                                <input type="tel" class="form-control" name="NoWA" placeholder="cth: 08123456789" required>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Alamat</label>
+                                <textarea class="form-control" name="Alamat" rows="2" placeholder="Masukkan alamat lengkap..." required></textarea>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Deskripsi Problem</label>
+                                <textarea class="form-control" name="DeskripsiProblem" rows="2" placeholder="Jelaskan masalah yang dialami..." required></textarea>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary px-5 rounded-pill">Submit</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tampilan Menunggu -->
+            <div class="card text-center shadow-lg border-0 rounded-3 d-none" id="waitingCard">
+                <div class="card-body" style="background-color: #d5d5ff;">
+                    <img src="~/images/Waiting.jpg" alt="Menunggu" class="mb-3" style="width:150px;">
+                    <p class="fw-semibold">
+                        Mohon maaf membuat anda menunggu.<br>
+                        Teknisi kami akan segera ke tempat anda.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById("orderForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            // Validasi form
+            if (!this.checkValidity()) {
+                this.reportValidity();
+                return;
+            }
+
+            // Tampilkan tampilan "menunggu"
+            document.getElementById("orderFormCard").classList.add("d-none");
+            document.getElementById("waitingCard").classList.remove("d-none");
+
+            // Delay agar user sempat lihat animasi
+            setTimeout(() => {
+                this.submit(); // submit ke controller
+            }, 1500);
+        });
+    </script>
+}

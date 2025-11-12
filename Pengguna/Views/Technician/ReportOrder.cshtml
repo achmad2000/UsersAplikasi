@@ -1,0 +1,94 @@
+﻿@{
+    ViewData["Title"] = "Report Order";
+}
+
+    <div class="row mt-3 g-3">
+        <div class="col-lg-3 col-md-4">
+            <div class="card shadow-sm border-0 mb-3">
+                <div class="card-body text-center" style="background-color:#DFF0D8;">
+                    <h6 class="fw-bold">Jumlah Customer</h6>
+                    <h2 class="fw-bold text-success">125</h2>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-body" style="background-color:#E8F5E9;">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-person-circle fs-3 me-2 text-secondary"></i>
+                        <div>
+                        <h6 class="fw-bold m-0">Nama: @Context.Session.GetString("Username")</h6>
+                            <small>No. ID: 00123</small><br />
+                            <div class="text-warning">
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-half"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5 col-md-8">
+            <div class="card shadow-sm border-0" style="background-color: #DDE6D5;">
+                <div class="card-body">
+                    <h5 class="fw-bold text-center mb-3">Input Problem Teknisi</h5>
+
+                    <form>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Nama Customer</label>
+                            <input type="text" class="form-control" placeholder="Masukkan nama customer">
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Jenis Service</label>
+                                <input type="text" class="form-control" placeholder="Contoh: AC, Listrik, Air">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Nomor Service</label>
+                                <input type="text" class="form-control" placeholder="Masukkan nomor service">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Deskripsi Problem</label>
+                            <textarea class="form-control" rows="3" placeholder="Tuliskan deskripsi problem di sini..."></textarea>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary px-4">Submit</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="col-lg-4 col-md-12">
+            <div class="card shadow-sm border-0 mb-3" style="border-top: 4px solid #FF8C00;">
+                <div class="card-body">
+                    <h6 class="fw-bold text-center text-primary mb-3">Customer Order</h6>
+                    <ul class="list-group">
+                        <li class="list-group-item">Order 1 - Pending</li>
+                        <li class="list-group-item">Order 2 - Done</li>
+                        <li class="list-group-item">Order 3 - On Progress</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0" style="border-top: 4px solid #FF8C00;">
+                <div class="card-body">
+                    <h6 class="fw-bold text-center text-primary mb-3">Customer Review</h6>
+                    <ul class="list-group">
+                        <li class="list-group-item">"Pelayanan cepat!" ⭐⭐⭐⭐</li>
+                        <li class="list-group-item">"Teknisi ramah." ⭐⭐⭐⭐⭐</li>
+                        <li class="list-group-item">"Perlu perbaikan di jadwal." ⭐⭐⭐</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+

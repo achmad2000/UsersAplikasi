@@ -1,0 +1,96 @@
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    var username = HttpContextAccessor.HttpContext.Session.GetString("Username") ?? "Guest";
+    var profileImage = HttpContextAccessor.HttpContext.Session.GetString("ProfileImagePath") ?? "~/images/profile/default-profile.png";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Home</title>
+
+    
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap-icons.css" />
+
+    <link rel="stylesheet" href="~/css/site.css">
+</head>
+<body>
+
+    <nav class="navbar navbar-dark bg-primary sticky-top">
+        <div class="container-fluid">
+            <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu">
+                <i class="bi bi-three-dots-vertical" style="font-size: 1.5rem; color: white;"></i>
+            </button>
+
+            <a class="navbar-brand" href="#">Home Service</a>
+            <div class="d-flex align-items-center ms-auto">
+                <div class="dropdown">
+                    <a class="nav-link dropdown-toggle text-white d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                        <img src="@Url.Content(profileImage)"
+                             alt="Foto Profil"
+                             class="rounded-circle me-2 shadow"
+                             style="width: 35px; height: 35px; object-fit: cover; border: 2px solid white;">
+                        <span>@username</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item disabled">Online</a></li>
+                        <li><a class="dropdown-item" asp-controller="Technician" asp-action="Profile">Profile</a></li>
+                        <li><a class="dropdown-item text-danger" asp-controller="Auth" asp-action="Logout">Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="offcanvas offcanvas-start bg-primary text-white" tabindex="-1" id="sidebarMenu" aria-labelledby="sidebarMenuLabel" style="width: 220px;">
+        <div class="offcanvas-header">
+            <h3 class="offcanvas-title" id="sidebarMenuLabel">Home Service</h3>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link text-white @(ViewData["ActivePage"] as string == "JobList" ? "active" : "")"
+                       asp-controller="Technician" asp-action="JobList">
+                        <i class="bi bi-house-door-fill"></i> JobList
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white @(ViewData["ActivePage"] as string == "ReportOrder" ? "active" : "")"
+                       asp-controller="Technician" asp-action="ReportOrder">
+                        <i class="bi bi-hdd-network"></i> Report Order
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white @(ViewData["ActivePage"] as string == "Control" ? "active" : "")"
+                       asp-controller="Home" asp-action="Control">
+                        <i class="bi bi-gear"></i> Order
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white @(ViewData["ActivePage"] as string == "Device" ? "active" : "")"
+                       asp-controller="Home" asp-action="Input">
+                        <i class="bi bi-hdd-network"></i> Garansi
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <main class="container-fluid p-4">
+        @RenderBody()
+    </main>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/sweetalert2.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script src="~/js/client.js"></script>
+
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

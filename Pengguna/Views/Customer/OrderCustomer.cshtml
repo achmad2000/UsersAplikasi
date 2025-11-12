@@ -1,0 +1,82 @@
+﻿@{
+    Layout = "_LayoutCustomer";
+    ViewData["Title"] = "Customer Order";
+}
+
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow border-0 rounded-3">
+                <div class="card-header bg-primary text-white text-center py-3">
+                    <h4 class="mb-0">Customer Order</h4>
+                </div>
+
+                <div class="card-body px-4 py-3">
+                    <form asp-action="SubmitOrder" method="post" enctype="multipart/form-data">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div>
+                                    <label class="form-label fw-semibold">Nama Customer</label>
+                                    <input type="text" class="form-control" name="NamaCustomer" placeholder="Masukkan nama customer...">
+                                </div>
+                                <div>
+                                    <label class="form-label fw-semibold">Jadwal Service</label>
+                                    <input type="datetime-local" class="form-control" name="JadwalService">
+                                </div>
+                                <div>
+                                    <label class="form-label fw-semibold">Alamat</label>
+                                    <textarea class="form-control" name="Alamat" rows="2" placeholder="Masukkan alamat..."></textarea>
+                                </div>
+                                <div>
+                                    <label class="form-label fw-semibold">Deskripsi Problem</label>
+                                    <textarea class="form-control" name="DeskripsiProblem" rows="2" placeholder="Jelaskan masalah..."></textarea>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div>
+                                    <label class="form-label fw-semibold">Item Service</label>
+                                    <select class="form-select" name="ItemService">
+                                        <option value="">Pilih item...</option>
+                                        <option value="AC">AC</option>
+                                        <option value="Kulkas">Kulkas</option>
+                                        <option value="Mesin Cuci">Mesin Cuci</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="form-label fw-semibold">No. WA</label>
+                                    <input type="tel" class="form-control" name="NoWA" placeholder="cth: 08123456789">
+                                </div>
+                                <div>
+                                    <label class="form-label fw-semibold">Foto Selesai Service</label>
+                                    <input type="file" class="form-control" name="FotoService">
+                                </div>
+                                <hr class="my-3">
+                                <div>
+                                    <label class="form-label fw-semibold">Nomor Service</label>
+                                    <input type="text" class="form-control" name="NomorService" placeholder="cth: SVC-001">
+                                </div>
+                                <div>
+                                    <label class="form-label fw-semibold">Produk</label>
+                                    <input type="text" class="form-control" name="Produk" placeholder="cth: Spare part X...">
+                                </div>
+                                <div>
+                                    <label class="form-label fw-semibold">Jumlah Harga</label>
+                                    <input type="number" class="form-control" name="JumlahHarga" placeholder="cth: 150000">
+                                </div>
+                                <div class="form-check mt-2">
+                                    <input type="checkbox" class="form-check-input" name="Voucher" id="voucherCheck" value="true" checked>
+                                    <label class="form-check-label" for="voucherCheck">Voucher</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill px-5">Submit</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

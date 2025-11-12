@@ -1,0 +1,36 @@
+html {
+    font-size: 14px;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+body {
+    margin-bottom: 60px;
+}
+
+.offcanvas-body .nav-link.active {
+    background-color: #d291ff !important; /* ungu muda agak pink */
+    border-left: 4px solid #e27dff !important; /* aksen pink-ungu */
+    border-radius: 8px;
+    font-weight: 600;
+    color: #ffffff !important;
+    transition: all 0.25s ease-in-out;
+    padding-left: 14px;
+}
+
+    /* --- Ikon menu aktif --- */
+    .offcanvas-body .nav-link.active i {
+        color: #ffffff !important; /* ikon ikut putih */
+    }
+
+/* --- Efek hover --- */
+.offcanvas-body .nav-link:hover {
+    background-color: #e9b7ff !important; /* hover ungu muda lebih terang */
+    color: #fff !important;
+    border-radius: 8px;
+    transition: all 0.2s ease-in-out;
+}

@@ -1,0 +1,36 @@
+﻿@model IEnumerable<Pengguna.Models.WaitingResponOrder>
+@{
+    ViewData["Title"] = "Report Order";
+}
+<div class="container mt-4">
+    <h4 class="text-center mb-4">Daftar Job Tersedia</h4>
+
+    <table class="table table-bordered shadow-sm">
+        <thead class="table-primary text-center">
+            <tr>
+                <th>Nama Customer</th>
+                <th>Item</th>
+                <th>Alamat</th>
+                <th>NomorWhatsApp</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in Model)
+            {
+                <tr>
+                    <td>@order.NamaCustomer</td>
+                    <td>@order.ItemService</td>
+                    <td>@order.Alamat</td>
+                    <td>@order.NoWA</td>
+                    <td class="text-center">
+                        <form asp-action="TakeJob" method="post">
+                            <input type="hidden" name="id" value="@order.Id" />
+                            <button type="submit" class="btn btn-success btn-sm">Ambil Job</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

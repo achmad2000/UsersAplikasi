@@ -1,0 +1,66 @@
+﻿@{
+    ViewData["Title"] = "Register";
+    Layout = "~/Views/Shared/_AuthLayout.cshtml";
+}
+
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap-icons.css" />
+
+<div class="d-flex align-items-center justify-content-center vh-100" style="background: linear-gradient(135deg, #20c997, #0d6efd);">
+    <div class="card shadow-lg p-4 rounded-4" style="width: 450px; border: none;">
+        <div class="text-center mb-3">
+            <i class="bi bi-person-plus-fill text-success" style="font-size: 4rem;"></i>
+            <h4 class="fw-bold mt-2">Daftar Akun Baru</h4>
+            <p class="text-muted mb-0">Isi data di bawah untuk membuat akun</p>
+        </div>
+
+        <form asp-action="Register" method="post">
+            <div class="mb-3">
+                <label class="form-label">Nama Lengkap</label>
+                <input type="text" class="form-control rounded-pill" name="Username" placeholder="Masukkan nama lengkap" required />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control rounded-pill" name="Email" placeholder="Masukkan email Anda" required />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Nomor HP</label>
+                <input type="tel" class="form-control rounded-pill" name="PhoneNumber" placeholder="Contoh: 08123456789" required />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input type="password" class="form-control rounded-pill" name="PasswordHash" placeholder="Masukkan password" required />
+            </div>
+
+            <div class="mb-3 text-center">
+                <label class="form-label d-block">Daftar Sebagai</label>
+                <div class="btn-group" role="group">
+                    <input type="radio" class="btn-check" name="Role" id="roleTech" value="Technician">
+                    <label class="btn btn-outline-primary" for="roleTech">Technician</label>
+
+                    <input type="radio" class="btn-check" name="Role" id="roleCustomer" value="Customer" checked>
+                    <label class="btn btn-outline-primary" for="roleCustomer">Customer</label>
+                </div>
+            </div>
+
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger text-center">@ViewBag.Error</div>
+            }
+
+            <div class="d-grid mb-3">
+                <button type="submit" class="btn btn-success rounded-pill">Daftar Sekarang</button>
+            </div>
+
+            <div class="text-center">
+                <small class="text-muted">
+                    Sudah punya akun?
+                    <a asp-action="Login" class="text-primary fw-semibold text-decoration-none">Login</a>
+                </small>
+            </div>
+        </form>
+    </div>
+</div>
