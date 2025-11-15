@@ -1,0 +1,69 @@
+﻿@model IEnumerable<Pengguna.Models.ServiceLog>
+@{
+    ViewData["Title"] = "Job Aktif Saya";
+    // Asumsi Anda punya variabel "ActivePage" di layout teknisi Anda
+    ViewData["ActivePage"] = "ActiveJobs";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-success text-white text-center rounded-top-3">
+            <h4 class="mb-0">Daftar Job Aktif Saya</h4>
+        </div>
+
+        <div class="card-body p-4" style="background-color: #f9f9ff;">
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle text-center mb-0">
+                        <thead class="table-primary">
+                            <tr>
+                                <th>Nama Customer</th>
+                                <th>Alamat</th>
+                                <th>Problem</th>
+                                <th>Status Pengerjaan</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var log in Model)
+                            {
+                                <tr>
+                                    <td>@log.WaitingResponOrder.NamaCustomer</td>
+                                    <td>@log.WaitingResponOrder.Alamat</td>
+                                    <td>@log.WaitingResponOrder.DeskripsiProblem</td>
+
+                                    <td>
+                                        @if (log.TimeStart == null)
+                                        {
+                                            <span class="badge bg-warning text-dark">Belum Dimulai</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-info">Sedang Dikerjakan</span>
+                                            <div class="text-muted small">
+                                                @log.TimeStart.Value.ToString("dd/MM/yy HH:mm")
+                                            </div>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        <a asp-action="ProcessService" asp-controller="Technician" asp-route-id="@log.Id" class="btn btn-success btn-sm">
+                                            <i class="bi bi-tools"></i> Proses Service
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-info-circle"></i> Anda belum memiliki job aktif saat ini.
+                </div>
+            }
+        </div>
+    </div>
+</div>

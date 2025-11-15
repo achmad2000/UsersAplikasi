@@ -56,6 +56,7 @@
                                             <span class="badge bg-info">@order.Status</span>
                                         }
                                     </td>
+
                                     <td>
                                         @if (order.Status?.Trim() == "Menunggu Teknisi")
                                         {
@@ -85,6 +86,19 @@
                                                 <i class="bi bi-clock"></i> Menunggu Persetujuan
                                             </button>
                                         }
+
+                                        else if (order.Status?.Trim() == "Dibatalkan" || order.Status?.Trim() == "Dibatalkan oleh Teknisi")
+                                        {
+                                            <form asp-action="DeleteOrderLog" asp-controller="Customer" method="post"
+                                                  onsubmit="return confirm('Yakin ingin menghapus permanen log pesanan ini?');"
+                                                  class="d-inline">
+                                                <input type="hidden" name="id" value="@order.Id" />
+                                                <button type="submit" class="btn btn-outline-danger btn-sm" title="Hapus Log">
+                                                    <i class="bi bi-trash"></i> Hapus
+                                                </button>
+                                            </form>
+                                        }
+
                                         else
                                         {
                                             <button class="btn btn-secondary btn-sm" disabled>
@@ -108,3 +122,35 @@
         </div>
     </div>
 </div>
+@section Scripts {
+    <script src="~/js/signalr/dist/browser/signalr.js"></script>
+    @using System.Text.Json; 
+    <script>
+                    const currentCustomerName = @Json.Serialize(Context.Session.GetString("Username"));
+
+                                     // 2. Setup koneksi ke Hub
+                                     const connection = new signalR.HubConnectionBuilder()
+                                         .withUrl("/JobOrderHub") // Pastikan nama hub Anda benar
+                                         .build();
+
+                                     // 3. (Otomatis) Bergabung ke grup customer saat konek
+                                     if (currentCustomerName) {
+                                         connection.start().then(function () {
+                                             connection.invoke("JoinCustomerGroup", currentCustomerName).catch(function (err) {
+                                                 return console.error(err.toString());
+                                             });
+                                             console.log("SignalR Terhubung (Customer: " + currentCustomerName + ")");
+                                         }).catch(function (err) {
+                                             return console.error(err.toString());
+                                         });
+                                     }
+
+                                     // 4. "Mendengarkan" sinyal 'UpdateReceived' dari server
+                                     connection.on("UpdateReceived", function () {
+                                         console.log("Notifikasi update status diterima! Me-refresh halaman...");
+
+                                         // [PERBAIKAN] Hapus 'alert()' dan langsung reload
+                                         location.reload();
+                                     });
+    </script>
+}

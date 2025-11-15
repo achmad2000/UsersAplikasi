@@ -16,6 +16,9 @@ namespace Pengguna.Data
         public DbSet<AdminNet> AdminNets { get; set; }
         public DbSet<ActiveOrder> ActiveOrders { get; set; }
         public DbSet<WaitingResponOrder> WaitingResponOrders { get; set; }
+        public DbSet<ServiceLog> ServiceLogs { get; set; }
+        public DbSet<ServiceLogDetail> ServiceLogsDetails { get; set; }
+        public DbSet<ServiceItem> ServiceItems { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

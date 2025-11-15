@@ -1,0 +1,139 @@
+﻿@model Pengguna.Models.ProcessServiceViewModel
+@{
+    ViewData["Title"] = "Proses Service Order";
+    Layout = "_Layout"; // Ganti jika layout teknisi Anda berbeda
+}
+
+<div class="container mt-4">
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Informasi Order</h4>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">Nama Customer</dt>
+                <dd class="col-sm-9">@Model.ServiceLog.WaitingResponOrder.NamaCustomer</dd>
+
+                <dt class="col-sm-3">Alamat</dt>
+                <dd class="col-sm-9">@Model.ServiceLog.WaitingResponOrder.Alamat</dd>
+
+                <dt class="col-sm-3">Problem</dt>
+                <dd class="col-sm-9">@Model.ServiceLog.WaitingResponOrder.DeskripsiProblem</dd>
+
+                <dt class="col-sm-3">Nomor WA</dt>
+                <dd class="col-sm-9">@Model.ServiceLog.WaitingResponOrder.NoWA</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-info text-dark">
+            <h5 class="mb-0">Kontrol Waktu Service</h5>
+        </div>
+        <div class="card-body text-center">
+            @if (Model.ServiceLog.TimeStart == null)
+            {
+                <form asp-action="StartService" method="post">
+                    <input type="hidden" name="id" value="@Model.ServiceLog.Id" />
+                    <button type="submit" class="btn btn-lg btn-success">
+                        <i class="bi bi-play-circle"></i> Mulai Service
+                    </button>
+                </form>
+                <small class="text-muted">Teknisi belum tiba di lokasi.</small>
+            }
+            else if (Model.ServiceLog.TimeStop == null)
+            {
+                <div class="alert alert-info">
+                    <strong>Service Dimulai:</strong> @Model.ServiceLog.TimeStart.Value.ToString("dd MMM yyyy, HH:mm")
+                </div>
+                <button class="btn btn-lg btn-danger" disabled>(Tombol Selesai Service)</button>
+            }
+            else
+            {
+                <div class="alert alert-success">
+                    <strong>Service Selesai:</strong> @Model.ServiceLog.TimeStop.Value.ToString("dd MMM yyyy, HH:mm")
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0">Input Rincian Tagihan</h5>
+        </div>
+
+        <form asp-action="AddItemToService" method="post" class="card-body">
+            <input type="hidden" name="serviceLogId" value="@Model.ServiceLog.Id" />
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="row g-3 align-items-end">
+                <div class="col-md-6">
+                    <label asp-for="NewItemId" class="form-label"></label>
+                    <select asp-for="NewItemId" class="form-select" asp-items="Model.AvailableItems">
+                        <option value="">Pilih barang/jasa...</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="NewItemQuantity" class="form-label"></label>
+                    <input asp-for="NewItemQuantity" class="form-control" type="number" min="1" />
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-plus-circle"></i> Tambah
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <hr />
+
+        <div class="table-responsive px-3">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Nama Barang/Jasa</th>
+                        <th class="text-center">Jumlah</th>
+                        <th class="text-end">Harga Satuan</th>
+                        <th class="text-end">Sub-Total</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var detail in Model.ServiceLog.ServiceLogDetails)
+                    {
+                        <tr>
+                            <td>@detail.NamaBarang</td>
+                            <td class="text-center">@detail.Jumlah</td>
+                            <td class="text-end">@detail.HargaSatuan.ToString("Rp #,##0")</td>
+                            <td class="text-end">@detail.SubTotal.ToString("Rp #,##0")</td>
+                            <td>
+                                <form asp-action="RemoveItemFromService" method="post">
+                                    <input type="hidden" name="id" value="@detail.Id" />
+                                    <button type="submit" class="btn btn-danger btn-sm" title="Hapus">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.ServiceLog.ServiceLogDetails.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">Belum ada item yang ditambahkan.</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr class="table-dark" style="font-size: 1.2rem;">
+                        <td colspan="3" class="text-end fw-bold">HARGA TOTAL</td>
+                        <td class="text-end fw-bold">
+                            @Model.ServiceLog.TotalHarga.ToString("Rp #,##0")
+                        </td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>

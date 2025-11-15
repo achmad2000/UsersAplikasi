@@ -2,20 +2,24 @@
 using Microsoft.AspNetCore.Http;
 using Pengguna.Models;
 using Pengguna.Data;
+//using Pengguna.Hubs;
 using System.IO;
 using System.Linq;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Pengguna.Controllers
 {
     public class CustomerController : Controller
     {
-        private readonly ApplicationDbContext _context; 
+        private readonly ApplicationDbContext _context;
+        private readonly IHubContext<JobOrderHub> _hubContext;
         private readonly IWebHostEnvironment _environment;
 
-        public CustomerController(ApplicationDbContext context, IWebHostEnvironment environment)
+        public CustomerController(ApplicationDbContext context, IHubContext<JobOrderHub> hubContext, IWebHostEnvironment environment)
         {
             _context = context;
             _environment = environment;
+            _hubContext = hubContext;
         }
         //public IActionResult ReportOrder()
         //{
@@ -111,44 +115,59 @@ namespace Pengguna.Controllers
             ViewData["ActivePage"] = "Order";
             return View();
         }
+        // ... (Action Profile, Dashboard, Order) ...
 
         [HttpPost]
-        public IActionResult SubmitOrder(WaitingResponOrder model)
+        public async Task<IActionResult> SubmitOrder(WaitingResponOrder model) // <-- Ubah ke async Task
         {
             if (ModelState.IsValid)
             {
                 var customerName = HttpContext.Session.GetString("Username");
-                model.NamaCustomer = customerName; 
+                model.NamaCustomer = customerName;
 
                 model.Status = "Menunggu Teknisi";
                 model.IsTaken = false;
                 model.NamaTeknisi = null;
 
                 _context.WaitingResponOrders.Add(model);
-                _context.SaveChanges();
+                _context.SaveChanges(); // Biarkan ini synchronous, tidak apa-apa
+
+                // [KODE SIGNALR] Kirim notifikasi ke grup "Technicians"
+                await _hubContext.Clients.Group("Technicians").SendAsync("UpdateReceived");
+
                 return RedirectToAction("WaitingOrder");
             }
             return View("Order", model);
         }
 
         [HttpPost]
-        public IActionResult CancelOrder(int id)
+        public async Task<IActionResult> CancelOrder(int id) // <-- Ubah ke async Task
         {
             var order = _context.WaitingResponOrders.FirstOrDefault(o => o.Id == id);
 
             if (order == null)
                 return NotFound();
-            if (order.Status == "Menunggu Teknisi")
+
+            bool isRequestingCancel = false; // penanda
+
+            if (order.Status?.Trim() == "Menunggu Teknisi")
             {
                 order.Status = "Dibatalkan";
-                _context.SaveChanges();
                 TempData["Message"] = "Pesanan berhasil dibatalkan.";
             }
-            else if (order.Status == "Diterima Teknisi" || order.Status == "Aktif (Lanjut Service)")
+            else if (order.Status?.Trim() == "Diterima Teknisi" || order.Status?.Trim() == "Aktif (Lanjut Service)")
             {
                 order.Status = "Menunggu Persetujuan Cancel";
-                _context.SaveChanges();
                 TempData["Message"] = "Permintaan pembatalan telah dikirim ke teknisi.";
+                isRequestingCancel = true; // Tandai bahwa ini permintaan ke teknisi
+            }
+
+            _context.SaveChanges();
+
+            // [KODE SIGNALR] Kirim notifikasi ke teknisi JIKA kita minta cancel
+            if (isRequestingCancel)
+            {
+                await _hubContext.Clients.Group("Technicians").SendAsync("UpdateReceived");
             }
 
             return RedirectToAction("WaitingOrder");
@@ -167,6 +186,27 @@ namespace Pengguna.Controllers
                 .OrderByDescending(o => o.Id)
                 .ToList();
             return View(myOrders);
+        }
+        [HttpPost]
+        public IActionResult DeleteOrderLog(int id)
+        {
+            var customerName = HttpContext.Session.GetString("Username");
+            if (string.IsNullOrEmpty(customerName))
+            {
+                return RedirectToAction("Login", "Account"); 
+            }
+            var order = _context.WaitingResponOrders.FirstOrDefault(o => o.Id == id);
+
+            if (order != null && order.NamaCustomer == customerName)
+            {
+                string currentStatus = order.Status?.Trim() ?? "";
+                if (currentStatus == "Dibatalkan" || currentStatus == "Dibatalkan oleh Teknisi")
+                {
+                    _context.WaitingResponOrders.Remove(order);
+                    _context.SaveChanges();
+                }
+            }
+            return RedirectToAction("WaitingOrder");
         }
     }
 }

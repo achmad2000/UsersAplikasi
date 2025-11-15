@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Pengguna.Data;
-using Pengguna.Hubs;
+//using Pengguna.Hubs;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.SignalR;
+
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSignalR();
@@ -52,8 +54,8 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Account}/{action=Login}/{id?}");
-
-app.MapHub<UserHub>("Hubs/UserHub");
+app.MapHub<JobOrderHub>("/JobOrderHub");
+//app.MapHub<UserHub>("Hubs/UserHub");
 
 
 app.Run();

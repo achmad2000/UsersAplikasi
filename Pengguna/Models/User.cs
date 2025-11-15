@@ -19,7 +19,7 @@ namespace Pengguna.Models
         public string PasswordHash { get; set; }
 
         [Required]
-        public string Role { get; set; } // Admin, Technician, Customer
+        public string Role { get; set; } 
 
         [Phone]
         public string PhoneNumber { get; set; }

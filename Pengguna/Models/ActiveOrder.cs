@@ -15,5 +15,4 @@ namespace Pengguna.Models
         public string TeknisiNama { get; set; }
         public DateTime TanggalAmbil { get; set; } = DateTime.Now;
     }
-
 }

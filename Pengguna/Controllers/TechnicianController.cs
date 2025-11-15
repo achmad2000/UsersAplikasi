@@ -2,20 +2,24 @@
 using Microsoft.AspNetCore.Http;
 using Pengguna.Models;
 using Pengguna.Data;
+//using Pengguna.Hubs;
 using System.IO;
 using System.Linq;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Pengguna.Controllers
 {
     public class TechnicianController : Controller
     {
-        private readonly ApplicationDbContext _context; 
+        private readonly ApplicationDbContext _context;
+        private readonly IHubContext<JobOrderHub> _hubContext;
         private readonly IWebHostEnvironment _environment;
 
-        public TechnicianController(ApplicationDbContext context, IWebHostEnvironment environment)
+        public TechnicianController(ApplicationDbContext context, IHubContext<JobOrderHub> hubContext,IWebHostEnvironment environment)
         {
             _context = context;
             _environment = environment;
+            _hubContext = hubContext;
         }
         public IActionResult ReportOrder()
         {
@@ -113,45 +117,51 @@ namespace Pengguna.Controllers
 
         // Take Job
         [HttpPost]
-        public IActionResult TakeJob(int id)
+        public async Task<IActionResult> TakeJob(int id) 
         {
             var order = _context.WaitingResponOrders.FirstOrDefault(o => o.Id == id);
             if (order != null)
             {
+                var technicianName = HttpContext.Session.GetString("Username");
                 order.Status = "Diterima Teknisi";
-                order.IsTaken = true; 
-                order.NamaTeknisi = User.Identity?.Name ?? "Technician";
-
+                order.IsTaken = true;
+                order.NamaTeknisi = technicianName ?? "Technician";
                 _context.SaveChanges();
+                await _hubContext.Clients.Group($"Customer_{order.NamaCustomer}")
+                                 .SendAsync("UpdateReceived");
             }
-
             return RedirectToAction("JobList");
         }
 
         [HttpPost]
-        public IActionResult ApproveCancel(int id)
+        public async Task<IActionResult> ApproveCancel(int id) 
         {
             var order = _context.WaitingResponOrders.FirstOrDefault(o => o.Id == id);
             if (order != null)
             {
                 order.Status = "Dibatalkan oleh Teknisi";
                 _context.SaveChanges();
+                await _hubContext.Clients.Group($"Customer_{order.NamaCustomer}")
+                                 .SendAsync("UpdateReceived");
             }
             return RedirectToAction("JobList");
         }
 
         [HttpPost]
-        public IActionResult RejectCancel(int id)
+        public async Task<IActionResult> RejectCancel(int id) 
         {
             var order = _context.WaitingResponOrders.FirstOrDefault(o => o.Id == id);
             if (order != null)
             {
-                order.Status = "Aktif (Lanjut Service)"; 
+                order.Status = "Aktif (Lanjut Service)";
                 _context.SaveChanges();
+                await _hubContext.Clients.Group($"Customer_{order.NamaCustomer}")
+                                 .SendAsync("UpdateReceived");
             }
             return RedirectToAction("JobList");
         }
-
     }
+
 }
+
    

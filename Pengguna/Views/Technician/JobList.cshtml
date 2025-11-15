@@ -104,3 +104,24 @@
         </div>
     </div>
 </div>
+@section Scripts {
+    <script src="~/js/signalr/dist/browser/signalr.js"></script>
+
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/JobOrderHub") 
+            .build();
+        connection.start().then(function () {
+            connection.invoke("JoinTechnicianGroup").catch(function (err) {
+                return console.error(err.toString());
+            });
+            console.log("SignalR Terhubung (Teknisi)");
+        }).catch(function (err) {
+            return console.error(err.toString());
+        });
+        connection.on("UpdateReceived", function () {
+            console.log("Notifikasi job baru diterima! Me-refresh halaman...");
+    location.reload();
+        });
+    </script>
+}
