@@ -66,9 +66,9 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-white @(ViewData["ActivePage"] as string == "Control" ? "active" : "")"
-                       asp-controller="Home" asp-action="Control">
-                        <i class="bi bi-gear"></i> Order
+                    <a class="nav-link text-white @(ViewData["ActivePage"] as string == "ActiveJobs" ? "active" : "")"
+                       asp-controller="Technician" asp-action="ActiveJobs">
+                        <i class="bi bi-gear"></i> Active Job
                     </a>
                 </li>
                 <li class="nav-item">
@@ -84,6 +84,8 @@
     <main class="container-fluid p-4">
         @RenderBody()
     </main>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
 
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/sweetalert2.js"></script>

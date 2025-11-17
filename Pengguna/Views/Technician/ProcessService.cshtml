@@ -3,6 +3,7 @@
     ViewData["Title"] = "Proses Service Order";
     Layout = "_Layout"; // Ganti jika layout teknisi Anda berbeda
 }
+@using System.Text.Json;
 
 <div class="container mt-4">
 
@@ -29,30 +30,58 @@
 
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-info text-dark">
-            <h5 class="mb-0">Kontrol Waktu Service</h5>
+            <h5 class="mb-0">Kontrol Waktu & Pembayaran</h5>
         </div>
-        <div class="card-body text-center">
+        <div class="card-body">
             @if (Model.ServiceLog.TimeStart == null)
             {
-                <form asp-action="StartService" method="post">
+                <form asp-action="StartService" method="post" class="text-center">
                     <input type="hidden" name="id" value="@Model.ServiceLog.Id" />
                     <button type="submit" class="btn btn-lg btn-success">
                         <i class="bi bi-play-circle"></i> Mulai Service
                     </button>
+                    <br />
+                    <small class="text-muted">Teknisi belum tiba di lokasi.</small>
                 </form>
-                <small class="text-muted">Teknisi belum tiba di lokasi.</small>
             }
             else if (Model.ServiceLog.TimeStop == null)
             {
                 <div class="alert alert-info">
                     <strong>Service Dimulai:</strong> @Model.ServiceLog.TimeStart.Value.ToString("dd MMM yyyy, HH:mm")
                 </div>
-                <button class="btn btn-lg btn-danger" disabled>(Tombol Selesai Service)</button>
+
+                <form asp-action="StopService" method="post"
+                      onsubmit="return confirm('Anda yakin ingin menyelesaikan service ini?');">
+
+                    <input type="hidden" name="id" value="@Model.ServiceLog.Id" />
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Status Pembayaran</label>
+                        <select name="statusPembayaran" class="form-select form-select-lg">
+                            <option value="Belum Lunas">Belum Lunas</option>
+                            <option value="Lunas">Lunas (Cash)</option>
+                            <option value="Lunas (Transfer)">Lunas (Transfer)</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-lg btn-danger w-100">
+                        <i class="bi bi-stop-circle"></i> Selesaikan Service & Simpan
+                    </button>
+                </form>
             }
             else
             {
-                <div class="alert alert-success">
-                    <strong>Service Selesai:</strong> @Model.ServiceLog.TimeStop.Value.ToString("dd MMM yyyy, HH:mm")
+                <div class="alert alert-success text-center">
+                    <h4 class="alert-heading">Service Selesai!</h4>
+                    <p>
+                        <strong>Dimulai:</strong> @Model.ServiceLog.TimeStart.Value.ToString("dd MMM yyyy, HH:mm")<br />
+                        <strong>Selesai:</strong> @Model.ServiceLog.TimeStop.Value.ToString("dd MMM yyyy, HH:mm")
+                    </p>
+                    <hr>
+                    <p class="mb-0">
+                        <strong>Status Pembayaran:</strong> @Model.ServiceLog.StatusPembayaran
+                    </p>
                 </div>
             }
         </div>
@@ -68,25 +97,35 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
             <div class="row g-3 align-items-end">
-                <div class="col-md-6">
-                    <label asp-for="NewItemId" class="form-label"></label>
-                    <select asp-for="NewItemId" class="form-select" asp-items="Model.AvailableItems">
-                        <option value="">Pilih barang/jasa...</option>
+
+                <div class="col-md-5">
+                    <label class="form-label">Jenis Service</label>
+                    <select id="jenisServiceDropdown" class="form-select" asp-items="Model.JenisServiceList">
+                        <option value="">Pilih jenis service...</option>
                     </select>
                 </div>
-                <div class="col-md-3">
+
+                <div class="col-md-4">
+                    <label asp-for="NewItemId" class="form-label"></label>
+                    <select asp-for="NewItemId" id="tindakanDropdown" class="form-select" disabled>
+                        <option value="">Pilih tindakan...</option>
+                    </select>
+                    <span asp-validation-for="NewItemId" class="text-danger d-block"></span>
+                </div>
+
+                <div class="col-md-2">
                     <label asp-for="NewItemQuantity" class="form-label"></label>
                     <input asp-for="NewItemQuantity" class="form-control" type="number" min="1" />
                 </div>
-                <div class="col-md-3">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-plus-circle"></i> Tambah
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-primary w-100" title="Tambah">
+                        <i class="bi bi-plus-circle"></i>
                     </button>
                 </div>
             </div>
         </form>
 
-        <hr />
+       <hr />
 
         <div class="table-responsive px-3">
             <table class="table table-striped">
@@ -137,3 +176,43 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            // 1. Simpan semua data item dari JSON yang dikirim Controller
+            var allItems = @Html.Raw(Model.AllItemsJson);
+
+            var jenisDropdown = $("#jenisServiceDropdown");
+            var tindakanDropdown = $("#tindakanDropdown");
+
+            // 2. Saat Dropdown 1 (Jenis Service) berubah...
+            jenisDropdown.on("change", function () {
+                var selectedJenis = $(this).val();
+
+                // Kosongkan dan disable Dropdown 2
+                tindakanDropdown.empty().append('<option value="">Pilih tindakan...</option>').prop("disabled", true);
+
+                if (selectedJenis) {
+                    // Filter data 'allItems' berdasarkan 'jenis' yang dipilih
+                    var filteredItems = allItems.filter(function (item) {
+                        return item.jenis === selectedJenis;
+                    });
+
+                    // 3. Isi Dropdown 2 (Tindakan) dengan data yang sudah difilter
+                    $.each(filteredItems, function (index, item) {
+                        tindakanDropdown.append($('<option>', {
+                            value: item.id,
+                            text: item.nama // 'nama' berisi "Cleaning Filter (Rp 50.000)"
+                        }));
+                    });
+
+                    // Aktifkan Dropdown 2
+                    tindakanDropdown.prop("disabled", false);
+                }
+            });
+
+        });
+    </script>
+}

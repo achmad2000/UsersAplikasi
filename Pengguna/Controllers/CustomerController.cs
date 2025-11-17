@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Http;
 using Pengguna.Models;
 using Pengguna.Data;
 //using Pengguna.Hubs;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.SignalR;
@@ -115,10 +117,10 @@ namespace Pengguna.Controllers
             ViewData["ActivePage"] = "Order";
             return View();
         }
-        // ... (Action Profile, Dashboard, Order) ...
+        // Order Customer
 
         [HttpPost]
-        public async Task<IActionResult> SubmitOrder(WaitingResponOrder model) // <-- Ubah ke async Task
+        public async Task<IActionResult> SubmitOrder(WaitingResponOrder model) 
         {
             if (ModelState.IsValid)
             {
@@ -130,9 +132,7 @@ namespace Pengguna.Controllers
                 model.NamaTeknisi = null;
 
                 _context.WaitingResponOrders.Add(model);
-                _context.SaveChanges(); // Biarkan ini synchronous, tidak apa-apa
-
-                // [KODE SIGNALR] Kirim notifikasi ke grup "Technicians"
+                _context.SaveChanges(); 
                 await _hubContext.Clients.Group("Technicians").SendAsync("UpdateReceived");
 
                 return RedirectToAction("WaitingOrder");
@@ -141,14 +141,14 @@ namespace Pengguna.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CancelOrder(int id) // <-- Ubah ke async Task
+        public async Task<IActionResult> CancelOrder(int id) 
         {
             var order = _context.WaitingResponOrders.FirstOrDefault(o => o.Id == id);
 
             if (order == null)
                 return NotFound();
 
-            bool isRequestingCancel = false; // penanda
+            bool isRequestingCancel = false; 
 
             if (order.Status?.Trim() == "Menunggu Teknisi")
             {
@@ -159,12 +159,9 @@ namespace Pengguna.Controllers
             {
                 order.Status = "Menunggu Persetujuan Cancel";
                 TempData["Message"] = "Permintaan pembatalan telah dikirim ke teknisi.";
-                isRequestingCancel = true; // Tandai bahwa ini permintaan ke teknisi
+                isRequestingCancel = true; 
             }
-
             _context.SaveChanges();
-
-            // [KODE SIGNALR] Kirim notifikasi ke teknisi JIKA kita minta cancel
             if (isRequestingCancel)
             {
                 await _hubContext.Clients.Group("Technicians").SendAsync("UpdateReceived");

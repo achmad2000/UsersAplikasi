@@ -12,7 +12,7 @@ using Pengguna.Data;
 namespace Pengguna.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251112023919_init")]
+    [Migration("20251117022734_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -121,6 +121,88 @@ namespace Pengguna.Migrations
                     b.ToTable("Orders");
                 });
 
+            modelBuilder.Entity("Pengguna.Models.ServiceItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Harga")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<string>("JenisService")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NamaItem")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ServiceItems");
+                });
+
+            modelBuilder.Entity("Pengguna.Models.ServiceLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("StatusPembayaran")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("TimeStart")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("TimeStop")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("TotalHarga")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<int>("WaitingResponOrderId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WaitingResponOrderId");
+
+                    b.ToTable("ServiceLogs");
+                });
+
+            modelBuilder.Entity("Pengguna.Models.ServiceLogDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("HargaSatuan")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<int>("Jumlah")
+                        .HasColumnType("int");
+
+                    b.Property<string>("NamaBarang")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ServiceLogId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServiceLogId");
+
+                    b.ToTable("ServiceLogDetails");
+                });
+
             modelBuilder.Entity("Pengguna.Models.Technician", b =>
                 {
                     b.Property<int>("Id")
@@ -206,6 +288,9 @@ namespace Pengguna.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("CancelRequestedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("DeskripsiProblem")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -224,12 +309,22 @@ namespace Pengguna.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("NamaTeknisi")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("NoWA")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("TanggalOrder")
                         .HasColumnType("datetime2");
+
+                    b.Property<int?>("TechnicianId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -251,6 +346,33 @@ namespace Pengguna.Migrations
                     b.Navigation("Customer");
 
                     b.Navigation("Technician");
+                });
+
+            modelBuilder.Entity("Pengguna.Models.ServiceLog", b =>
+                {
+                    b.HasOne("Pengguna.Models.WaitingResponOrder", "WaitingResponOrder")
+                        .WithMany()
+                        .HasForeignKey("WaitingResponOrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("WaitingResponOrder");
+                });
+
+            modelBuilder.Entity("Pengguna.Models.ServiceLogDetail", b =>
+                {
+                    b.HasOne("Pengguna.Models.ServiceLog", "ServiceLog")
+                        .WithMany("ServiceLogDetails")
+                        .HasForeignKey("ServiceLogId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ServiceLog");
+                });
+
+            modelBuilder.Entity("Pengguna.Models.ServiceLog", b =>
+                {
+                    b.Navigation("ServiceLogDetails");
                 });
 
             modelBuilder.Entity("Pengguna.Models.UserModel", b =>

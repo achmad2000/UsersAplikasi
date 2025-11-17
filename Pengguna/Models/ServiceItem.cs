@@ -7,9 +7,11 @@ namespace Pengguna.Models
     {
         [Key]
         public int Id { get; set; }
-
+        [Required(ErrorMessage = "Jenis service wajib diisi")]
+        [Display(Name = "Jenis Service")]
+        public string JenisService { get; set; }
         [Required(ErrorMessage = "Nama item/jasa wajib diisi")]
-        [Display(Name = "Nama Barang / Jasa")]
+        [Display(Name = "Nama Tindakan / Barang")]
         public string NamaItem { get; set; }
 
         [Required(ErrorMessage = "Harga wajib diisi")]
@@ -17,5 +19,6 @@ namespace Pengguna.Models
         [Display(Name = "Harga Satuan")]
         [Range(0, double.MaxValue, ErrorMessage = "Harga tidak boleh negatif")]
         public decimal Harga { get; set; }
+
     }
 }
