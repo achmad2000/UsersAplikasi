@@ -7,6 +7,8 @@ namespace Pengguna.Models
     public class WaitingResponOrder
     {
         public int Id { get; set; }
+        [Display(Name = "Nomor Service")]
+        public string? NomorService { get; set; }
         public string NamaCustomer { get; set; }
         public string ItemService { get; set; }
         public DateTime JadwalService { get; set; }

@@ -19,6 +19,7 @@ namespace Pengguna.Data
         public DbSet<ServiceLog> ServiceLogs { get; set; }
         public DbSet<ServiceLogDetail> ServiceLogDetails { get; set; }
         public DbSet<ServiceItem> ServiceItems { get; set; }
+        public DbSet<SelesaiService> SelesaiServices { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

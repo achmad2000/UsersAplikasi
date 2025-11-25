@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Pengguna.Data;
 
@@ -11,9 +12,11 @@ using Pengguna.Data;
 namespace Pengguna.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251123073808_rtyu")]
+    partial class rtyu
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -116,66 +119,6 @@ namespace Pengguna.Migrations
                     b.HasIndex("TechnicianId");
 
                     b.ToTable("Orders");
-                });
-
-            modelBuilder.Entity("Pengguna.Models.SelesaiService", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Alamat")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DeskripsiProblem")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ItemService")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("JadwalService")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("NamaCustomer")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("NamaTeknisi")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("NoWA")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("NomorService")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("StatusPembayaran")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("TanggalOrder")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("TechnicianId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("TotalBiaya")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime?>("WaktuSelesai")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("SelesaiServices");
                 });
 
             modelBuilder.Entity("Pengguna.Models.ServiceItem", b =>

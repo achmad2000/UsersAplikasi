@@ -38,7 +38,7 @@
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><a class="dropdown-item disabled">Online</a></li>
-                        <li><a class="dropdown-item" asp-controller="Technician" asp-action="Profile">Profile</a></li>
+                        <li><a class="dropdown-item" asp-controller="Customer" asp-action="Profile">Profile</a></li>
                         <li><a class="dropdown-item text-danger" asp-controller="Auth" asp-action="Logout">Logout</a></li>
                     </ul>
                 </div>
@@ -59,16 +59,23 @@
                         <i class="bi bi-house-door-fill"></i> Dashboard
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white @(ViewData["ActivePage"] as string == "OrderCustomer" ? "active" : "")"
-                       asp-controller="Customer" asp-action="OrderCustomer">
-                        <i class="bi bi-hdd-network"></i> OrderCustomer
-                    </a>
-                </li>
+               
                 <li class="nav-item">
                     <a class="nav-link text-white @(ViewData["ActivePage"] as string == "Order" ? "active" : "")"
                        asp-controller="Customer" asp-action="Order">
-                        <i class="bi bi-hdd-network"></i> Order
+                        <i class="bi bi-tools"></i> Order
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white @(ViewData["ActivePage"] as string == "DaftarTagihan" ? "active" : "")"
+                       asp-controller="Customer" asp-action="DaftarTagihan">
+                        <i class="bi bi-receipt"></i> Daftar Tagihan
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white @(ViewData["ActivePage"] as string == "RiwayatService" ? "active" : "")"
+                       asp-controller="Customer" asp-action="RiwayatService">
+                        <i class="bi bi-clock-history"></i> Riwayat Servis
                     </a>
                 </li>
             </ul>

@@ -1,0 +1,44 @@
+﻿@model IEnumerable<Pengguna.Models.ServiceLog>
+@{
+    ViewData["Title"] = "Daftar Tagihan";
+    Layout = "_LayoutCustomer";
+}
+
+<div class="container mt-4 mb-5">
+    <div class="text-center mb-4">
+        <h3><i class="bi bi-wallet2"></i> Tagihan Belum Dibayar</h3>
+        <p class="text-muted">Anda memiliki @Model.Count() service yang perlu diselesaikan pembayarannya.</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+
+            @foreach (var item in Model)
+            {
+                <div class="card shadow-sm mb-3 border-start border-4 border-primary hover-shadow">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+
+                        <div>
+                            <h5 class="fw-bold mb-1">@item.WaitingResponOrder.NomorService</h5>
+                            <div class="text-muted small mb-2">
+                                <i class="bi bi-calendar-event"></i> @item.TimeStop?.ToString("dd MMM yyyy, HH:mm")
+                            </div>
+                            <span class="badge bg-warning text-dark">Menunggu Pembayaran</span>
+                        </div>
+
+                        <div class="text-end">
+                            <h4 class="fw-bold text-primary mb-2">@item.TotalHarga.ToString("Rp #,##0")</h4>
+
+                            <a href="@Url.Action("StatusPembayaran", "Customer", new { nomor = item.WaitingResponOrder.NomorService })"
+                               class="btn btn-sm btn-outline-primary rounded-pill px-4">
+                                Pilih & Bayar <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+            }
+
+        </div>
+    </div>
+</div>

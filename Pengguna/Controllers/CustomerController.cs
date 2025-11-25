@@ -23,17 +23,7 @@ namespace Pengguna.Controllers
             _environment = environment;
             _hubContext = hubContext;
         }
-        //public IActionResult ReportOrder()
-        //{
-        //    if (HttpContext.Session.GetString("UserRole") != "Technician")
-        //    {
-        //        return RedirectToAction("Login", "Account");
-        //    }
-
-        //    ViewData["ActivePage"] = "ReportOrder";
-        //    return View();
-        //}
-        public IActionResult OrderCustomer()
+               public IActionResult OrderCustomer()
         {
             ViewData["ActivePage"] = "OrderCustomer";
             return View();
@@ -117,6 +107,7 @@ namespace Pengguna.Controllers
             ViewData["ActivePage"] = "Order";
             return View();
         }
+       
         // Order Customer
 
         [HttpPost]
@@ -132,7 +123,10 @@ namespace Pengguna.Controllers
                 model.NamaTeknisi = null;
 
                 _context.WaitingResponOrders.Add(model);
-                _context.SaveChanges(); 
+                _context.SaveChanges();
+                model.NomorService = $"HS{2000 + model.Id}";
+                _context.Update(model);
+                _context.SaveChanges();
                 await _hubContext.Clients.Group("Technicians").SendAsync("UpdateReceived");
 
                 return RedirectToAction("WaitingOrder");
@@ -204,6 +198,146 @@ namespace Pengguna.Controllers
                 }
             }
             return RedirectToAction("WaitingOrder");
+        }
+        //Pembayaran
+        [HttpGet]
+        public async Task<IActionResult> DaftarTagihan()
+        {
+                        var customerName = HttpContext.Session.GetString("Username");
+            if (string.IsNullOrEmpty(customerName)) return RedirectToAction("Login", "Account");
+
+             var pendingBills = await _context.ServiceLogs
+                .Include(s => s.WaitingResponOrder)
+                .Where(s => s.WaitingResponOrder.NamaCustomer == customerName &&
+                            s.WaitingResponOrder.Status == "Menunggu Pembayaran")
+                .OrderByDescending(s => s.TimeStop)
+                .ToListAsync();
+
+          if (pendingBills.Count == 0)
+            {
+                return View("EmptyBill");
+            }
+            if (pendingBills.Count == 1)
+            {
+                var nomorService = pendingBills.First().WaitingResponOrder.NomorService;
+                return RedirectToAction("StatusPembayaran", new { nomor = nomorService });
+            }
+            return View(pendingBills);
+        }
+        [HttpGet]
+        public async Task<IActionResult> StatusPembayaran(string? nomor)
+        {
+             var customerName = HttpContext.Session.GetString("Username");
+
+            if (string.IsNullOrEmpty(customerName))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var query = _context.ServiceLogs
+                .Include(s => s.WaitingResponOrder)
+                .Where(s => s.WaitingResponOrder.NamaCustomer == customerName);
+
+            if (!string.IsNullOrEmpty(nomor))
+            {
+
+                query = query.Where(s => s.WaitingResponOrder.NomorService == nomor);
+            }
+            else
+            {
+
+                query = query.Where(s => s.WaitingResponOrder.Status == "Menunggu Pembayaran");
+            }
+
+            var unpaidBill = await query
+                .OrderByDescending(s => s.TimeStop)
+                .FirstOrDefaultAsync();
+
+            if (unpaidBill == null)
+            {
+
+                return View("EmptyBill");
+            }
+
+            return View(unpaidBill);
+        }
+        //metode pembayaran
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> PilihMetodeCash(int id)
+        {
+            var serviceLog = await _context.ServiceLogs
+                .Include(s => s.WaitingResponOrder)
+                .FirstOrDefaultAsync(s => s.Id == id);
+
+            if (serviceLog == null) return NotFound();
+
+            serviceLog.StatusPembayaran = "Cash";
+            serviceLog.WaitingResponOrder.Status = "Menunggu Konfirmasi Cash"; // Status ini yang dibaca di ValidasiPembayaran Teknisi
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("MenungguKonfirmasiTeknisi", new { id = serviceLog.Id });
+        }
+
+        public async Task<IActionResult> MenungguKonfirmasiTeknisi(int id)
+        {
+            // cari data di tabel ServiceLogs (Tabel Aktif)
+            var serviceLog = await _context.ServiceLogs
+                .Include(s => s.WaitingResponOrder)
+                .FirstOrDefaultAsync(s => s.Id == id);
+
+            if (serviceLog == null)
+            {
+                var username = HttpContext.Session.GetString("Username");
+
+                var arsip = await _context.SelesaiServices
+                    .Where(s => s.NamaCustomer == username)
+                    .OrderByDescending(s => s.WaktuSelesai) // Ambil yang paling baru
+                    .FirstOrDefaultAsync();
+
+                if (arsip != null)
+                {
+                    return RedirectToAction("StrukLunas", new { nomor = arsip.NomorService });
+                }
+
+                return RedirectToAction("DaftarTagihan");
+            }
+
+            if (serviceLog.WaitingResponOrder.Status == "Selesai")
+            {
+                return RedirectToAction("StrukLunas", new { nomor = serviceLog.WaitingResponOrder.NomorService });
+            }
+
+            return View(serviceLog);
+        }
+        //riwayat selesai service
+        [HttpGet]
+        public async Task<IActionResult> RiwayatService()
+        {
+                     var customerName = HttpContext.Session.GetString("Username");
+            if (string.IsNullOrEmpty(customerName)) return RedirectToAction("Login", "Account");
+
+            // 2. Ambil data dari tabel ARSIP (SelesaiServices)
+            var history = await _context.SelesaiServices
+                .Where(s => s.NamaCustomer == customerName)
+                .OrderByDescending(s => s.WaktuSelesai) // Paling baru di atas
+                .ToListAsync();
+
+            return View(history);
+        }
+        [HttpGet]
+        public async Task<IActionResult> StrukLunas(string nomor)
+        {
+            // Cari data di tabel ARSIP (SelesaiServices) berdasarkan Nomor Service
+            var arsip = await _context.SelesaiServices
+                .FirstOrDefaultAsync(s => s.NomorService == nomor);
+                if (arsip == null)
+            {
+                return RedirectToAction("RiwayatService");
+            }
+
+            return View(arsip);
         }
     }
 }

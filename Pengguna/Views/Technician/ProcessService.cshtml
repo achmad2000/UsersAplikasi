@@ -1,7 +1,7 @@
 ﻿@model Pengguna.Models.ProcessServiceViewModel
 @{
     ViewData["Title"] = "Proses Service Order";
-    Layout = "_Layout"; // Ganti jika layout teknisi Anda berbeda
+    Layout = "_Layout"; 
 }
 @using System.Text.Json;
 
@@ -13,6 +13,9 @@
         </div>
         <div class="card-body">
             <dl class="row">
+                <dt class="col-sm-3">Nomor Service</dt>
+                <dd class="col-sm-9">@Model.ServiceLog.WaitingResponOrder.NomorService</dd>
+
                 <dt class="col-sm-3">Nama Customer</dt>
                 <dd class="col-sm-9">@Model.ServiceLog.WaitingResponOrder.NamaCustomer</dd>
 
@@ -46,8 +49,8 @@
             }
             else if (Model.ServiceLog.TimeStop == null)
             {
-                <div class="alert alert-info">
                     <strong>Service Dimulai:</strong> @Model.ServiceLog.TimeStart.Value.ToString("dd MMM yyyy, HH:mm")
+                <div class="alert alert-info">
                 </div>
 
                 <form asp-action="StopService" method="post"
@@ -56,14 +59,13 @@
                     <input type="hidden" name="id" value="@Model.ServiceLog.Id" />
                     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Status Pembayaran</label>
-                        <select name="statusPembayaran" class="form-select form-select-lg">
-                            <option value="Belum Lunas">Belum Lunas</option>
-                            <option value="Lunas">Lunas (Cash)</option>
-                            <option value="Lunas (Transfer)">Lunas (Transfer)</option>
-                        </select>
-                    </div>
+                    @* <div class="mb-3"> *@
+                    @*     <label class="form-label fw-bold">Status Pembayaran</label> *@
+                    @*     <select name="statusPembayaran" class="form-select form-select-lg"> *@
+                    @*         <option value="Cash">Cash</option> *@
+                    @*         <option value="Transfer">Transfer</option> *@
+                    @*     </select> *@
+                    @* </div> *@
 
                     <button type="submit" class="btn btn-lg btn-danger w-100">
                         <i class="bi bi-stop-circle"></i> Selesaikan Service & Simpan
@@ -131,6 +133,7 @@
             <table class="table table-striped">
                 <thead>
                     <tr>
+                        <th>Jenis Service</th>
                         <th>Nama Barang/Jasa</th>
                         <th class="text-center">Jumlah</th>
                         <th class="text-end">Harga Satuan</th>
@@ -142,6 +145,7 @@
                     @foreach (var detail in Model.ServiceLog.ServiceLogDetails)
                     {
                         <tr>
+                            <td>@detail.JenisService</td>
                             <td>@detail.NamaBarang</td>
                             <td class="text-center">@detail.Jumlah</td>
                             <td class="text-end">@detail.HargaSatuan.ToString("Rp #,##0")</td>
@@ -159,13 +163,13 @@
                     @if (!Model.ServiceLog.ServiceLogDetails.Any())
                     {
                         <tr>
-                            <td colspan="5" class="text-center text-muted">Belum ada item yang ditambahkan.</td>
+                            <td colspan="6" class="text-center text-muted">Belum ada item yang ditambahkan.</td>
                         </tr>
                     }
                 </tbody>
                 <tfoot>
                     <tr class="table-dark" style="font-size: 1.2rem;">
-                        <td colspan="3" class="text-end fw-bold">HARGA TOTAL</td>
+                        <td colspan="4" class="text-end fw-bold">HARGA TOTAL</td>
                         <td class="text-end fw-bold">
                             @Model.ServiceLog.TotalHarga.ToString("Rp #,##0")
                         </td>
@@ -180,35 +184,23 @@
 @section Scripts {
     <script>
         $(document).ready(function () {
-
-            // 1. Simpan semua data item dari JSON yang dikirim Controller
             var allItems = @Html.Raw(Model.AllItemsJson);
-
             var jenisDropdown = $("#jenisServiceDropdown");
             var tindakanDropdown = $("#tindakanDropdown");
-
-            // 2. Saat Dropdown 1 (Jenis Service) berubah...
             jenisDropdown.on("change", function () {
                 var selectedJenis = $(this).val();
-
-                // Kosongkan dan disable Dropdown 2
-                tindakanDropdown.empty().append('<option value="">Pilih tindakan...</option>').prop("disabled", true);
+                    tindakanDropdown.empty().append('<option value="">Pilih tindakan...</option>').prop("disabled", true);
 
                 if (selectedJenis) {
-                    // Filter data 'allItems' berdasarkan 'jenis' yang dipilih
                     var filteredItems = allItems.filter(function (item) {
                         return item.jenis === selectedJenis;
                     });
-
-                    // 3. Isi Dropdown 2 (Tindakan) dengan data yang sudah difilter
                     $.each(filteredItems, function (index, item) {
                         tindakanDropdown.append($('<option>', {
                             value: item.id,
-                            text: item.nama // 'nama' berisi "Cleaning Filter (Rp 50.000)"
+                            text: item.nama 
                         }));
                     });
-
-                    // Aktifkan Dropdown 2
                     tindakanDropdown.prop("disabled", false);
                 }
             });

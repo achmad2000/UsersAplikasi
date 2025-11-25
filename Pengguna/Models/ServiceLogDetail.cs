@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Pengguna.Models
+namespace Pengguna.Models // Pastikan namespace Anda benar
 {
     public class ServiceLogDetail
     {
@@ -10,13 +10,17 @@ namespace Pengguna.Models
 
         [Required]
         public int ServiceLogId { get; set; }
-
         [ForeignKey("ServiceLogId")]
         public virtual ServiceLog ServiceLog { get; set; }
 
+        // [BARU] Tambahkan kolom ini
+        [Required]
+        [Display(Name = "Jenis Service")]
+        public string JenisService { get; set; }
+
         [Required]
         [Display(Name = "Nama Barang/Jasa")]
-        public string NamaBarang { get; set; } 
+        public string NamaBarang { get; set; }
 
         [Required]
         [Range(1, int.MaxValue, ErrorMessage = "Jumlah minimal 1")]

@@ -1,0 +1,118 @@
+﻿@model IEnumerable<Pengguna.Models.ServiceLog>
+@{
+    ViewData["Title"] = "Antrean Validasi Pembayaran";
+    Layout = "_Layout";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3><i class="bi bi-wallet2"></i> Antrean Validasi Pembayaran</h3>
+        <a href="@Url.Action("ValidasiPembayaran")" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-arrow-clockwise"></i> Refresh Data
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-success text-center mt-4 shadow-sm">
+            <h5><i class="bi bi-check-circle"></i> Tidak ada pembayaran yang perlu divalidasi.</h5>
+            <p class="mb-0">Semua pekerjaan teknisi Anda sudah lunas atau belum selesai.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row mt-4">
+            @foreach (var item in Model)
+            {
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm h-100 @(item.StatusPembayaran == "Cash" ? "border-success" : "border-warning")">
+
+                        <div class="card-header d-flex justify-content-between align-items-center
+                                     @(item.StatusPembayaran == "Cash" ? "bg-success text-white" : "bg-warning text-dark")">
+                            <strong>@item.WaitingResponOrder.NomorService</strong>
+                            <span class="badge bg-light text-dark fs-6">@item.TotalHarga.ToString("Rp #,##0")</span>
+                        </div>
+
+                        <div class="card-body text-center">
+                            <p class="mb-1 text-muted">Customer:</p>
+                            <h5 class="fw-bold">@item.WaitingResponOrder.NamaCustomer</h5>
+                            <hr />
+
+                            @if (item.StatusPembayaran == "Belum Dipilih" || string.IsNullOrEmpty(item.StatusPembayaran))
+                            {
+                                /* KONDISI 1: CUSTOMER BELUM MEMILIH */
+                                <div class="alert alert-info">
+                                    <div class="spinner-border spinner-border-sm text-primary mb-2" role="status"></div>
+                                    <br />
+                                    <strong>Menunggu Customer Memilih Metode...</strong>
+                                    <p class="small mb-0">Harap tunggu, customer sedang melihat total tagihan di perangkatnya.</p>
+                                </div>
+                            }
+                            else if (item.StatusPembayaran == "Cash")
+                            {
+                                /* KONDISI 2: CUSTOMER MEMILIH CASH */
+                                <div class="alert alert-success">
+                                    <h4 class="fw-bold"><i class="bi bi-cash-stack"></i> TUNAI / CASH</h4>
+                                    <p class="mb-0">Customer memilih pembayaran tunai.</p>
+                                </div>
+
+                                <div class="bg-light p-3 rounded mb-3 border">
+                                    <small class="text-danger fw-bold d-block mb-2">TUGAS TEKNISI:</small>
+                                    <span>Terima uang sejumlah <strong>@item.TotalHarga.ToString("Rp #,##0")</strong> dari customer.</span>
+                                </div>
+
+                                <form asp-action="ConfirmPayment" method="post">
+                                    <input type="hidden" name="id" value="@item.Id" />
+                                    <button type="submit" class="btn btn-success w-100 btn-lg shadow"
+                                            onclick="return confirm('Apakah Anda SUDAH MENERIMA uang tunai sejumlah @item.TotalHarga.ToString("Rp #,##0")?');">
+                                        <i class="bi bi-check-circle-fill"></i> Uang Diterima & Lunas
+                                    </button>
+                                </form>
+                            }
+                            else if (item.StatusPembayaran == "Transfer")
+                            {
+                                /* KONDISI 3: CUSTOMER MEMILIH TRANSFER (Persiapan) */
+                                <div class="alert alert-primary">
+                                    <h6 class="fw-bold"><i class="bi bi-bank"></i> TRANSFER BANK</h6>
+                                </div>
+
+                                <div class="mb-3">
+                                    @if (!string.IsNullOrEmpty(item.BuktiPembayaranPath))
+                                    {
+                                        <p class="small text-muted">Bukti Transfer:</p>
+                                        <img src="@item.BuktiPembayaranPath" class="img-fluid rounded border shadow-sm" style="max-height: 200px;" />
+                                        <div class="mt-2">
+                                            <a href="@item.BuktiPembayaranPath" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-zoom-in"></i> Perbesar
+                                            </a>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-muted py-3 border rounded bg-light">
+                                            <div class="spinner-grow spinner-grow-sm" role="status"></div>
+                                            <span class="ms-2">Menunggu upload bukti transfer...</span>
+                                        </div>
+                                    }
+                                </div>
+
+                                <form asp-action="ConfirmPayment" method="post">
+                                    <input type="hidden" name="id" value="@item.Id" />
+                                    <button type="submit" class="btn btn-primary w-100"
+                                            onclick="return confirm('Pastikan dana sudah masuk ke rekening sebelum konfirmasi!');"
+                                            @(string.IsNullOrEmpty(item.BuktiPembayaranPath) ? "disabled" : "")>
+                                        <i class="bi bi-check2-all"></i> Cek Mutasi & Validasi
+                                    </button>
+                                </form>
+                            }
+                        </div>
+
+                        <div class="card-footer text-muted small text-center">
+                            Status Order: @item.WaitingResponOrder.Status
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

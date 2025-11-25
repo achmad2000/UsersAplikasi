@@ -29,6 +29,7 @@ namespace Pengguna.Models
         [Display(Name = "Status Pembayaran")]
         public string? StatusPembayaran { get; set; } 
         public virtual ICollection<ServiceLogDetail> ServiceLogDetails { get; set; }
+        public string? BuktiPembayaranPath { get; set; }
 
         public ServiceLog()
         {

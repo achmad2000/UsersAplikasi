@@ -17,6 +17,7 @@
                     <table class="table table-bordered align-middle text-center mb-0">
                         <thead class="table-primary">
                             <tr>
+                                <th>Nomor Service</th>
                                 <th>Nama Customer</th>
                                 <th>Item</th>
                                 <th>Alamat</th>
@@ -29,7 +30,7 @@
                             @foreach (var order in Model)
                             {
                                 <tr>
-                                    <td>@order.NamaCustomer</td>
+                                    <td>@order.NomorService</td>  <td>@order.NamaCustomer</td>
                                     <td>@order.ItemService</td>
                                     <td>@order.Alamat</td>
                                     <td>@order.NoWA</td>

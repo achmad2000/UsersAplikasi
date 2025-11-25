@@ -108,6 +108,12 @@ namespace Pengguna.Controllers
             return RedirectToAction("Profile");
 
         }
+        public IActionResult OrderCustomer()
+        {
+            ViewData["ActivePage"] = "OrderCustomer";
+            return View();
+        }
+      
         public IActionResult JobList()
         {
             var waitingOrders = _context.WaitingResponOrders
@@ -130,13 +136,13 @@ namespace Pengguna.Controllers
             var technicianName = HttpContext.Session.GetString("Username");
             order.Status = "Diterima Teknisi";
             order.IsTaken = true;
-            order.NamaTeknisi = technicianName ?? "Technician"; // Fallback jika session kosong
+            order.NamaTeknisi = technicianName ?? "Technician"; 
             var serviceLog = new ServiceLog
             {
-                WaitingResponOrderId = order.Id, // Link ke order aslinya
+                WaitingResponOrderId = order.Id, 
                 TotalHarga = 0,
                 StatusPembayaran = "Belum Lunas",
-                TimeStart = null, // Belum dimulai
+                TimeStart = null, 
                 TimeStop = null
             };
             _context.ServiceLogs.Add(serviceLog);
@@ -149,17 +155,14 @@ namespace Pengguna.Controllers
         }
         public async Task<IActionResult> ActiveJobs()
         {
-            // Ambil nama teknisi yang sedang login
             var technicianName = HttpContext.Session.GetString("Username");
             if (string.IsNullOrEmpty(technicianName))
             {
                 return RedirectToAction("Login", "Account"); // Harus login
             }
 
-            // [BARU] Ambil data dari ServiceLogs (bukan WaitingResponOrders)
-            // yang ditugaskan ke teknisi ini DAN belum selesai (TimeStop masih null)
             var myActiveJobs = await _context.ServiceLogs
-                .Include(s => s.WaitingResponOrder) // Join ke order asli untuk ambil info (Alamat, Nama, dll)
+                .Include(s => s.WaitingResponOrder) 
                 .Where(s => s.WaitingResponOrder.NamaTeknisi == technicianName &&
                             s.TimeStop == null) // Hanya yang aktif
                 .OrderBy(s => s.WaitingResponOrder.TanggalOrder)
@@ -167,8 +170,8 @@ namespace Pengguna.Controllers
 
             ViewData["ActivePage"] = "ActiveJobs"; // Untuk di layout
             return View(myActiveJobs);
-            // Anda perlu membuat file View baru di /Views/Technician/ActiveJobs.cshtml
         }
+        //Mekanisme cancel
         [HttpPost]
         public async Task<IActionResult> ApproveCancel(int id)
         {
@@ -214,17 +217,12 @@ namespace Pengguna.Controllers
             var viewModel = new ProcessServiceViewModel
             {
                 ServiceLog = serviceLog,
-
-                // 1. Data untuk Dropdown 1 (Jenis Service)
-                //    Ambil daftar unik "JenisService" dari item yang ada
                 JenisServiceList = allServiceItems
              .Select(i => i.JenisService)
              .Distinct()
              .OrderBy(jenis => jenis)
              .Select(jenis => new SelectListItem { Value = jenis, Text = jenis }),
 
-                // 2. Data untuk Dropdown 2 (Tindakan)
-                //    Kirim SEMUA item sebagai JSON agar bisa difilter oleh JavaScript
                 AllItemsJson = JsonSerializer.Serialize(allServiceItems.Select(item => new
                 {
                     id = item.Id,
@@ -249,6 +247,7 @@ namespace Pengguna.Controllers
             }
             return RedirectToAction("ProcessService", new { id = id });
         }
+        //penambahan item
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddItemToService(int serviceLogId, int newItemId, int newItemQuantity)
@@ -267,6 +266,7 @@ namespace Pengguna.Controllers
             var logDetail = new ServiceLogDetail
             {
                 ServiceLogId = serviceLogId,
+                JenisService = itemToAdd.JenisService,
                 NamaBarang = itemToAdd.NamaItem,
                 HargaSatuan = itemToAdd.Harga,
                 Jumlah = newItemQuantity
@@ -305,33 +305,130 @@ namespace Pengguna.Controllers
 
             return RedirectToAction("ProcessService", new { id = serviceLogId });
         }
-        // Di dalam TechnicianController.cs
-
+        //mekanisme pembayaran
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> StopService(int id, string statusPembayaran) // 'id' adalah ServiceLogId
+        public async Task<IActionResult> StopService(int id)
         {
-            var serviceLog = await _context.ServiceLogs.FindAsync(id);
+            var serviceLog = await _context.ServiceLogs
+                .Include(s => s.WaitingResponOrder)
+                .FirstOrDefaultAsync(s => s.Id == id);
 
-            if (serviceLog == null)
-            {
-                return NotFound();
-            }
-
-            // 1. Catat waktu selesai (HANYA jika belum selesai)
+            if (serviceLog == null) return NotFound();
             if (serviceLog.TimeStop == null)
-            {
                 serviceLog.TimeStop = DateTime.Now;
+            serviceLog.WaitingResponOrder.Status = "Menunggu Pembayaran";
+
+            serviceLog.StatusPembayaran = "Belum Dipilih";
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("ValidasiPembayaran");
+        }
+
+        public async Task<IActionResult> ValidasiPembayaran()
+        {
+            var technicianName = HttpContext.Session.GetString("Username");
+            if (string.IsNullOrEmpty(technicianName)) return RedirectToAction("Login", "Account");
+
+            var pendingValidations = await _context.ServiceLogs
+                .Include(s => s.WaitingResponOrder)
+                .Where(s => s.WaitingResponOrder.NamaTeknisi == technicianName &&
+                            (
+                                s.WaitingResponOrder.Status == "Menunggu Pembayaran" ||
+                                s.WaitingResponOrder.Status == "Menunggu Konfirmasi Cash" ||                         
+                                s.WaitingResponOrder.Status == "Menunggu Verifikasi Transfer"
+                            ))
+                .OrderByDescending(s => s.TimeStop)
+                .ToListAsync();
+
+            ViewData["ActivePage"] = "ValidasiPembayaran";
+            return View(pendingValidations);
+        }
+        // Acc pembayaran
+        [HttpPost]
+        public async Task<IActionResult> ConfirmPayment(int id)
+        {
+            var serviceLog = await _context.ServiceLogs
+                .Include(s => s.WaitingResponOrder)
+                .Include(s => s.ServiceLogDetails) 
+                .FirstOrDefaultAsync(s => s.Id == id);
+
+            if (serviceLog == null || serviceLog.WaitingResponOrder == null)
+            {
+                return RedirectToAction("ValidasiPembayaran");
             }
 
-            // 2. Update status pembayaran (Lunas / Belum Lunas)
-            serviceLog.StatusPembayaran = statusPembayaran;
+            string targetNomorService = serviceLog.WaitingResponOrder.NomorService;
+            var orderLama = serviceLog.WaitingResponOrder;
+            string rincianItem = orderLama.ItemService;
+            if (serviceLog.ServiceLogDetails != null && serviceLog.ServiceLogDetails.Any())
+            {
+                var listBarang = serviceLog.ServiceLogDetails
+                .Select(d => $"{d.JenisService}|{d.NamaBarang}")
+                .ToArray();
 
-            // 3. Simpan perubahan ke DB
+                rincianItem = string.Join(",", listBarang);
+            }
+
+            var arsipBaru = new SelesaiService
+            {
+                NomorService = orderLama.NomorService,
+                NamaCustomer = orderLama.NamaCustomer,
+                ItemService = rincianItem, 
+                JadwalService = orderLama.JadwalService,
+                NoWA = orderLama.NoWA,
+                Alamat = orderLama.Alamat,
+                DeskripsiProblem = orderLama.DeskripsiProblem,
+                TanggalOrder = orderLama.TanggalOrder,
+                StatusPembayaran = serviceLog.StatusPembayaran ?? "Lunas (Cash)",
+                TechnicianId = orderLama.TechnicianId,
+                NamaTeknisi = orderLama.NamaTeknisi,
+                TotalBiaya = serviceLog.TotalHarga,
+                WaktuSelesai = DateTime.Now
+            };
+
+            _context.SelesaiServices.Add(arsipBaru);
+            var logsToDelete = _context.ServiceLogs
+                .Where(s => s.WaitingResponOrder.NomorService == targetNomorService)
+                .ToList();
+
+            var logIds = logsToDelete.Select(l => l.Id).ToList();
+
+            var detailsToDelete = _context.ServiceLogDetails
+                .Where(d => logIds.Contains(d.ServiceLogId))
+                .ToList();
+
+            var orderToDelete = _context.WaitingResponOrders
+                .Where(o => o.NomorService == targetNomorService)
+                .ToList();
+
+            if (detailsToDelete.Any())
+            {
+                _context.ServiceLogDetails.RemoveRange(detailsToDelete);
+            }
+
+            if (logsToDelete.Any())
+            {
+                _context.ServiceLogs.RemoveRange(logsToDelete);
+            }
+
+            if (orderToDelete.Any())
+            {
+                _context.WaitingResponOrders.RemoveRange(orderToDelete);
+            }
+
             await _context.SaveChangesAsync();
-            return RedirectToAction("ActiveJobs");
+
+            // signalr notif
+            if (_hubContext != null)
+            {
+                await _hubContext.Clients.Group($"Customer_{orderLama.NamaCustomer}")
+                    .SendAsync("UpdateReceived");
+            }
+
+            return RedirectToAction("ValidasiPembayaran");
         }
     }
-
 }
 

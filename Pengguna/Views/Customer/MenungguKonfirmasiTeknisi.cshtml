@@ -1,0 +1,28 @@
+﻿@model Pengguna.Models.ServiceLog
+@{
+    ViewData["Title"] = "Menunggu Konfirmasi";
+    Layout = "_Layout";
+    ViewData["ActivePage"] = "DaftarTagihan";
+}
+<meta http-equiv="refresh" content="5">
+
+<div class="container mt-5 text-center">
+    <div class="card shadow border-warning mx-auto" style="max-width: 500px;">
+        <div class="card-body py-5">
+            <div class="spinner-border text-warning" style="width: 3rem; height: 3rem;" role="status"></div>
+            <h4 class="mt-4 fw-bold text-warning">Menunggu Konfirmasi Teknisi</h4>
+
+            <p class="lead mt-3">
+                Anda memilih metode <strong>CASH</strong>.
+            </p>
+            <p class="text-muted">
+                Silakan serahkan uang sebesar <strong>@Model.TotalHarga.ToString("Rp #,##0")</strong> kepada teknisi.
+                <br />
+                Sistem akan otomatis update setelah teknisi menerima uang.
+            </p>
+
+            <hr />
+            <small class="text-muted">Halaman ini akan refresh otomatis...</small>
+        </div>
+    </div>
+</div>

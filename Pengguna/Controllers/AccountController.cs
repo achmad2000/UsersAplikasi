@@ -115,8 +115,8 @@ namespace Pengguna.Controllers
 
             return role switch
             {
-                "Technician" => RedirectToAction("ReportOrder", "Technician"),
-                "Customer" => RedirectToAction("OrderCustomer", "Customer"),
+                "Technician" => RedirectToAction("JobList", "Technician"),
+                "Customer" => RedirectToAction("Index", "Customer"),
                 _ => RedirectToAction("Login")
             };
         }

@@ -56,25 +56,31 @@
                 <li class="nav-item">
                     <a class="nav-link text-white @(ViewData["ActivePage"] as string == "JobList" ? "active" : "")"
                        asp-controller="Technician" asp-action="JobList">
-                        <i class="bi bi-house-door-fill"></i> JobList
+                        <i class="bi bi-list-task"></i> JobList
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link text-white @(ViewData["ActivePage"] as string == "ReportOrder" ? "active" : "")"
                        asp-controller="Technician" asp-action="ReportOrder">
-                        <i class="bi bi-hdd-network"></i> Report Order
+                        <i class="bi bi-file-earmark-text"></i> Report Order
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link text-white @(ViewData["ActivePage"] as string == "ActiveJobs" ? "active" : "")"
                        asp-controller="Technician" asp-action="ActiveJobs">
-                        <i class="bi bi-gear"></i> Active Job
+                        <i class="bi bi-play-circle"></i> Active Job
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white @(ViewData["ActivePage"] as string == "ValidasiPembayaran" ? "active" : "")"
+                       asp-controller="Technician" asp-action="ValidasiPembayaran">
+                        <i class="bi bi-check-circle"></i> ValidasiPembayaran
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link text-white @(ViewData["ActivePage"] as string == "Device" ? "active" : "")"
                        asp-controller="Home" asp-action="Input">
-                        <i class="bi bi-hdd-network"></i> Garansi
+                        <i class="bi bi-shield-check"></i> Garansi
                     </a>
                 </li>
             </ul>
