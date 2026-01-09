@@ -29,11 +29,34 @@
                         <tbody>
                             @foreach (var order in Model)
                             {
-                                <tr>
-                                    <td>@order.NomorService</td>  <td>@order.NamaCustomer</td>
-                                    <td>@order.ItemService</td>
+                                // 1. DETEKSI APAKAH INI ORDER GARANSI?
+                                bool isGaransi = order.NomorService.StartsWith("G-");
+
+                                <tr class="@(isGaransi ? "table-danger" : "")">
+                                    <td>
+                                        <div class="fw-bold">@order.NomorService</div>
+
+                                        @if (isGaransi)
+                                        {
+                                            <span class="badge bg-danger mt-1">
+                                                <i class="bi bi-shield-exclamation"></i> KLAIM GARANSI
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td>@order.NamaCustomer</td>
+
+                                    <td>
+                                        @order.ItemService
+                                        @if (isGaransi)
+                                        {
+                                            <div class="small text-danger fst-italic mt-1">(Perbaikan Ulang / Gratis)</div>
+                                        }
+                                    </td>
+
                                     <td>@order.Alamat</td>
                                     <td>@order.NoWA</td>
+
                                     <td>
                                         @if (order.Status == "Menunggu Teknisi")
                                         {
@@ -62,22 +85,23 @@
                                         @if (order.Status == "Menunggu Teknisi")
                                         {
                                             <form asp-action="TakeJob" asp-controller="Technician" method="post"
-                                                  onsubmit="return confirm('Ambil job ini?');" class="d-inline">
+                                                  onsubmit="return confirm('@(isGaransi ? "Ambil Job Garansi ini? (Ingat: Tidak ada tagihan ke customer)" : "Ambil job ini?")');" class="d-inline">
                                                 <input type="hidden" name="id" value="@order.Id" />
-                                                <button type="submit" class="btn btn-success btn-sm">
-                                                    <i class="bi bi-hand-index-thumb"></i> Ambil Job
+
+                                                <button type="submit" class="btn @(isGaransi ? "btn-danger" : "btn-success") btn-sm">
+                                                    <i class="bi bi-hand-index-thumb"></i> @(isGaransi ? "Ambil Job Garansi" : "Ambil Job")
                                                 </button>
                                             </form>
                                         }
 
-                                        @* --- TOMBOL TERIMA / TOLAK CANCEL --- *@
+                                        @* --- TOMBOL TERIMA / TOLAK CANCEL (Sama) --- *@
                                         @if (order.Status == "Menunggu Persetujuan Cancel")
                                         {
                                             <form asp-action="ApproveCancel" asp-controller="Technician" method="post" class="d-inline"
                                                   onsubmit="return confirm('Terima pembatalan order ini?');">
                                                 <input type="hidden" name="id" value="@order.Id" />
                                                 <button type="submit" class="btn btn-outline-success btn-sm">
-                                                    <i class="bi bi-check-circle"></i> Setuju Cancel
+                                                    <i class="bi bi-check-circle"></i> Setuju
                                                 </button>
                                             </form>
 
@@ -85,7 +109,7 @@
                                                   onsubmit="return confirm('Tolak pembatalan order ini?');">
                                                 <input type="hidden" name="id" value="@order.Id" />
                                                 <button type="submit" class="btn btn-outline-danger btn-sm">
-                                                    <i class="bi bi-x-circle"></i> Tolak Cancel
+                                                    <i class="bi bi-x-circle"></i> Tolak
                                                 </button>
                                             </form>
                                         }

@@ -21,6 +21,7 @@ namespace Pengguna.Models
         public int? TechnicianId { get; set; }
         public string? NamaTeknisi { get; set; }
         public DateTime? CancelRequestedAt { get; set; }
+        public virtual ICollection<ServiceLog>? ServiceLogs { get; set; }
     }
 
 }

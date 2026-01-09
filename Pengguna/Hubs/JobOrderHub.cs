@@ -8,6 +8,6 @@ public class JobOrderHub : Hub
     }
     public async Task JoinCustomerGroup(string customerName)
     {
-        await Groups.AddToGroupAsync(Context.ConnectionId, $"Customer_{customerName}");
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"Customer_{customerName.ToLower()}");
     }
 }

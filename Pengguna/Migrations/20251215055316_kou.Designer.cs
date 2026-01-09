@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Pengguna.Data;
 
@@ -11,9 +12,11 @@ using Pengguna.Data;
 namespace Pengguna.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251215055316_kou")]
+    partial class kou
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -176,9 +179,6 @@ namespace Pengguna.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsRated")
-                        .HasColumnType("bit");
-
                     b.Property<string>("ItemService")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -202,9 +202,6 @@ namespace Pengguna.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("Rating")
-                        .HasColumnType("int");
-
                     b.Property<string>("StatusPembayaran")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -217,9 +214,6 @@ namespace Pengguna.Migrations
 
                     b.Property<decimal>("TotalBiaya")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Ulasan")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("WaktuSelesai")
                         .HasColumnType("datetime2");
@@ -469,7 +463,7 @@ namespace Pengguna.Migrations
             modelBuilder.Entity("Pengguna.Models.ServiceLog", b =>
                 {
                     b.HasOne("Pengguna.Models.WaitingResponOrder", "WaitingResponOrder")
-                        .WithMany("ServiceLogs")
+                        .WithMany()
                         .HasForeignKey("WaitingResponOrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -498,11 +492,6 @@ namespace Pengguna.Migrations
                     b.Navigation("CustomerOrders");
 
                     b.Navigation("TechnicianOrders");
-                });
-
-            modelBuilder.Entity("Pengguna.Models.WaitingResponOrder", b =>
-                {
-                    b.Navigation("ServiceLogs");
                 });
 #pragma warning restore 612, 618
         }

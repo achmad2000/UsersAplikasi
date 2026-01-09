@@ -24,5 +24,8 @@ namespace Pengguna.Models
         // Opsional: Tambahan info waktu selesai
         public DateTime? WaktuSelesai { get; set; }
         public decimal TotalBiaya { get; set; }
+        public int? Rating { get; set; } 
+        public string? Ulasan { get; set; }
+        public bool IsRated { get; set; } = false;
     }
 }

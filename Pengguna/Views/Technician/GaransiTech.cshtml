@@ -1,0 +1,116 @@
+﻿@model IEnumerable<Pengguna.Models.WaitingResponOrder>
+
+@{
+    ViewData["ActivePage"] = "GaransiTech";
+    ViewData["Title"] = "Daftar Pekerjaan Garansi";
+    Layout = "_Layout"; 
+}
+
+<div class="container mt-4">
+    <div class="d-flex align-items-center mb-4">
+        <div class="bg-danger text-white rounded p-3 me-3">
+            <i class="bi bi-shield-exclamation fs-3"></i>
+        </div>
+        <div>
+            <h4 class="fw-bold mb-0">Job Garansi / Komplain</h4>
+            <small class="text-muted">Daftar perbaikan ulang (Gratis) yang harus segera ditangani.</small>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-success text-center py-5 shadow-sm">
+            <i class="bi bi-check-circle-fill text-success fs-1 mb-3"></i>
+            <h5>Tidak ada komplain aktif!</h5>
+            <p>Kerja bagus, semua unit aman terkendali.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var item in Model)
+            {
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card border-danger border-2 shadow h-100">
+                        <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                            <span class="fw-bold">@item.NomorService</span>
+                            <span class="badge bg-white text-danger">URGENT</span>
+                        </div>
+
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold">@item.NamaCustomer</h5>
+                            <p class="text-muted small mb-2"><i class="bi bi-geo-alt-fill"></i> @item.Alamat</p>
+                            <p class="text-muted small"><i class="bi bi-whatsapp"></i> @item.NoWA</p>
+
+                            <hr class="border-danger">
+
+                            <div class="alert alert-light border border-danger text-danger small">
+                                <strong>Masalah:</strong><br />
+                                @item.DeskripsiProblem
+                            </div>
+
+                            <p class="mb-1"><strong>Unit:</strong> @item.ItemService</p>
+                            <p><strong>Status:</strong> <span class="badge bg-warning text-dark">@item.Status</span></p>
+                        </div>
+
+                        <div class="card-footer bg-white border-top-0 pb-3">
+
+                            <div class="d-grid gap-2">
+                                <form asp-action="TakeJobGaransiNow" asp-controller="Technician" method="post" class="d-grid">
+                                    <input type="hidden" name="id" value="@item.Id" />
+                                    <button type="submit" class="btn btn-danger fw-bold shadow-sm"
+                                            onclick="return confirm('Mulai kerjakan garansi ini sekarang?');">
+                                        <i class="bi bi-play-circle-fill"></i> Kerjakan Sekarang
+                                    </button>
+                                </form>
+
+                                <button type="button" class="btn btn-outline-danger fw-bold"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalJadwal-@item.Id">
+                                    <i class="bi bi-calendar-event"></i> Atur Jadwal
+                                </button>
+                            </div>
+
+                            <small class="text-center d-block mt-2 text-muted fst-italic">
+                                Job akan otomatis pindah ke menu <strong>Active Job</strong>.
+                            </small>
+                        </div>
+
+                        <div class="modal fade" id="modalJadwal-@item.Id" tabindex="-1">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <form asp-action="ScheduleJobGaransi" asp-controller="Technician" method="post">
+                                        <input type="hidden" name="id" value="@item.Id" />
+
+                                        <div class="modal-header bg-danger text-white">
+                                            <h5 class="modal-title">Atur Jadwal Kunjungan</h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                        </div>
+
+                                        <div class="modal-body">
+                                            <p class="mb-2">Kapan Anda akan mengerjakan garansi untuk <strong>@item.NamaCustomer</strong>?</p>
+
+                                            <div class="form-group mb-3">
+                                                <label class="fw-bold mb-1">Pilih Tanggal & Jam:</label>
+                                                <input type="datetime-local" name="jadwalPengerjaan" class="form-control" required />
+                                            </div>
+
+                                            <div class="alert alert-warning small">
+                                                <i class="bi bi-info-circle"></i> Job ini akan tetap masuk ke <strong>Active Job</strong>, namun dengan status "Terjadwal".
+                                            </div>
+                                        </div>
+
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                            <button type="submit" class="btn btn-danger">Simpan Jadwal</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

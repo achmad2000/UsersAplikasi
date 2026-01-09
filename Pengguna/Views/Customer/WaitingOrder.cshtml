@@ -35,7 +35,6 @@
                                     <td>@order.ItemService</td>
                                     <td>@order.Alamat</td>
                                     <td>@(order.NamaTeknisi ?? "-")</td>
-
                                     <td>
                                         @if (order.Status?.Trim() == "Menunggu Teknisi")
                                         {
@@ -45,6 +44,37 @@
                                         {
                                             <span class="badge bg-primary">@order.Status</span>
                                         }
+                                        else if (order.Status?.Trim() == "Sedang Dikerjakan")
+                                        {
+                                            <span class="badge bg-primary">Sedang Dikerjakan</span>
+                                        }
+
+                                        @* --- BAGIAN INI YANG KITA PERBAIKI (Dimasukkan ke dalam Else If) --- *@
+                                        else if (order.Status?.Trim() == "Terjadwal")
+                                        {
+                                            <span class="badge bg-info text-dark">Terjadwal</span>
+
+                                            @* Logika untuk memunculkan Tanggal *@
+                                            <div class="small text-muted mt-1" style="font-size: 0.85em;">
+                                                <i class="bi bi-calendar-event"></i>
+                                                @{
+                                                    var jadwal = order.ServiceLogs?
+                                                    .OrderByDescending(s => s.Id)
+                                                    .FirstOrDefault();
+                                                }
+
+                                                @if (jadwal != null && jadwal.TimeStart.HasValue)
+                                                {
+                                                    @jadwal.TimeStart.Value.ToString("dd MMM HH:mm")
+                                                }
+                                                else
+                                                {
+                                                    <span>-</span>
+                                                }
+                                            </div>
+                                        }
+                                        @* ------------------------------------------------------------------ *@
+
                                         else if (order.Status?.Trim() == "Menunggu Persetujuan Cancel")
                                         {
                                             <span class="badge bg-secondary">@order.Status</span>

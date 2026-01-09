@@ -74,18 +74,24 @@
                         </button>
                     </form>
 
-                    <button class="btn btn-outline-secondary btn-lg w-100 p-3 text-start position-relative d-flex align-items-center opacity-75" disabled>
+                    <form asp-action="PilihMetodeTransfer" asp-controller="Customer" method="post">
+                        <input type="hidden" name="id" value="@Model.Id" />
 
-                        <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
-                            <i class="bi bi-bank fs-4"></i>
-                        </div>
+                        <button type="submit" class="btn btn-outline-primary btn-lg w-100 p-3 text-start position-relative d-flex align-items-center"
+                                onclick="return confirm('Lanjut ke pembayaran via Transfer Bank?');">
 
-                        <div>
-                            <span class="d-block fw-bold text-dark">Transfer Bank</span>
-                            <small class="text-muted">Metode ini belum dibahas</small>
-                        </div>
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                <i class="bi bi-bank fs-4"></i>
+                            </div>
 
-                    </button>
+                            <div>
+                                <span class="d-block fw-bold text-dark">Transfer Bank</span>
+                                <small class="text-muted">BCA, BRI, Mandiri, dll</small>
+                            </div>
+
+                            <i class="bi bi-chevron-right position-absolute end-0 me-3 text-muted"></i>
+                        </button>
+                    </form>
 
                 </div>
 

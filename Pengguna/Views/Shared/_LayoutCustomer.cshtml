@@ -78,6 +78,12 @@
                         <i class="bi bi-clock-history"></i> Riwayat Servis
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white @(ViewData["ActivePage"] as string == "Garansi" ? "active" : "")"
+                       asp-controller="Customer" asp-action="Garansi">
+                        <i class="bi bi-clock-history"></i> Garansi
+                    </a>
+                </li>
             </ul>
         </div>
     </div>
@@ -88,10 +94,47 @@
 
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/sweetalert2.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
-    <script src="~/js/client.js"></script>
+    <script src="~/js/signalr/dist/browser/signalr.js"></script>
 
+    <script>
+        // 1. Setup Koneksi
+        var connection = new signalR.HubConnectionBuilder()
+            .withUrl("/JobOrderHub")
+            .build();
 
+        // 2. Pasang Telinga (Listener)
+        connection.on("RedirectToRating", function (idArsip) {
+            console.warn("COMMAND DITERIMA! ID: " + idArsip); // Pakai warn biar warna kuning mencolok
+            window.location.href = "/Customer/BeriRating/" + idArsip;
+        });
+
+        // 3. Mulai Koneksi & Join Group
+        connection.start().then(function () {
+            console.log("SignalR Connected (Status: " + connection.state + ")");
+
+            // Ambil username
+            var user = "@Context.Session.GetString("Username")";
+            console.log("Current User Session: '" + user + "'");
+
+            if (user && user !== "Guest" && user !== "") {
+                // Log sebelum join
+                console.log("Mencoba join group sebagai: " + user.toLowerCase());
+
+                // Join dengan huruf kecil
+                connection.invoke("JoinCustomerGroup", user.toLowerCase())
+                    .then(function() {
+                         console.log("✅ SUKSES JOIN GROUP: Customer_" + user.toLowerCase());
+                    })
+                    .catch(function (err) {
+                        console.error("❌ GAGAL JOIN GROUP: " + err.toString());
+                    });
+            } else {
+                console.error("❌ TIDAK BISA JOIN: Session Username Kosong/Guest");
+            }
+        }).catch(function (err) {
+            console.error("❌ GAGAL KONEKSI SIGNALR: " + err.toString());
+        });
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

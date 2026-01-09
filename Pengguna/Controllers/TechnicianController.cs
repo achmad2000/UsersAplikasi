@@ -52,7 +52,7 @@ namespace Pengguna.Controllers
             {
                 return RedirectToAction("Login", "Account");
             }
-
+                    
             ViewData["ActivePage"] = "Profile";
             return View(user);
         }
@@ -346,36 +346,114 @@ namespace Pengguna.Controllers
             return View(pendingValidations);
         }
         // Acc pembayaran
+        //[HttpPost]
+        //public async Task<IActionResult> ConfirmPayment(int id)
+        //{
+        //    // 1. Ambil Data Log & Order
+        //    var serviceLog = await _context.ServiceLogs
+        //        .Include(s => s.WaitingResponOrder)
+        //        .Include(s => s.ServiceLogDetails)
+        //        .FirstOrDefaultAsync(s => s.Id == id);
+
+        //    if (serviceLog == null || serviceLog.WaitingResponOrder == null)
+        //    {
+        //        return RedirectToAction("ValidasiPembayaran");
+        //    }
+
+        //    var orderLama = serviceLog.WaitingResponOrder;
+        //    string namaCustomerSafe = (orderLama.NamaCustomer ?? "").Trim();
+        //    string targetNomorService = orderLama.NomorService;
+
+        //    // Susun Rincian Item
+        //    string rincianItem = orderLama.ItemService;
+        //    if (serviceLog.ServiceLogDetails != null && serviceLog.ServiceLogDetails.Any())
+        //    {
+        //        var listBarang = serviceLog.ServiceLogDetails
+        //            .Select(d => $"{d.JenisService}|{d.NamaBarang}")
+        //            .ToArray();
+        //        rincianItem = string.Join(",", listBarang);
+        //    }
+
+        //    // 2. Buat Arsip Baru
+        //    var arsipBaru = new SelesaiService
+        //    {
+        //        NomorService = orderLama.NomorService,
+        //        NamaCustomer = namaCustomerSafe, // Pakai yang safe
+        //        ItemService = rincianItem,
+        //        JadwalService = orderLama.JadwalService,
+        //        NoWA = orderLama.NoWA,
+        //        Alamat = orderLama.Alamat,
+        //        DeskripsiProblem = orderLama.DeskripsiProblem,
+        //        TanggalOrder = orderLama.TanggalOrder,
+        //        StatusPembayaran = serviceLog.StatusPembayaran ?? "Lunas (Cash)",
+        //        TechnicianId = orderLama.TechnicianId,
+        //        NamaTeknisi = orderLama.NamaTeknisi,
+        //        TotalBiaya = serviceLog.TotalHarga,
+        //        WaktuSelesai = DateTime.Now
+        //    };
+
+        //    _context.SelesaiServices.Add(arsipBaru);
+        //    var logsToDelete = _context.ServiceLogs.Where(s => s.WaitingResponOrder.NomorService == targetNomorService).ToList();
+        //    var logIds = logsToDelete.Select(l => l.Id).ToList();
+        //    var detailsToDelete = _context.ServiceLogDetails.Where(d => logIds.Contains(d.ServiceLogId)).ToList();
+        //    var orderToDelete = _context.WaitingResponOrders.Where(o => o.NomorService == targetNomorService).ToList();
+
+        //    if (detailsToDelete.Any()) _context.ServiceLogDetails.RemoveRange(detailsToDelete);
+        //    if (logsToDelete.Any()) _context.ServiceLogs.RemoveRange(logsToDelete);
+        //    if (orderToDelete.Any()) _context.WaitingResponOrders.RemoveRange(orderToDelete);
+        //    await _context.SaveChangesAsync();
+        //    if (_hubContext == null)
+        //    {
+        //        Console.WriteLine("BAHAYA: _hubContext bernilai NULL. Cek Constructor Controller!");
+        //    }
+        //    else
+        //    {
+
+        //        string groupTarget = $"Customer_{namaCustomerSafe.ToLower()}";
+
+        //        await _hubContext.Clients.Group(groupTarget)
+        //            .SendAsync("RedirectToRating", arsipBaru.Id);
+
+        //        // await _hubContext.Clients.All.SendAsync("RedirectToRating", arsipBaru.Id);
+        //    }
+
+        //    return RedirectToAction("ValidasiPembayaran");
+        //}
         [HttpPost]
         public async Task<IActionResult> ConfirmPayment(int id)
         {
+            // 1. Ambil Data Log & Order dengan Include lengkap
             var serviceLog = await _context.ServiceLogs
                 .Include(s => s.WaitingResponOrder)
-                .Include(s => s.ServiceLogDetails) 
+                .Include(s => s.ServiceLogDetails)
                 .FirstOrDefaultAsync(s => s.Id == id);
 
+            // Cek null safety agar tidak error
             if (serviceLog == null || serviceLog.WaitingResponOrder == null)
             {
                 return RedirectToAction("ValidasiPembayaran");
             }
 
-            string targetNomorService = serviceLog.WaitingResponOrder.NomorService;
             var orderLama = serviceLog.WaitingResponOrder;
+            string namaCustomerSafe = (orderLama.NamaCustomer ?? "").Trim();
+            string targetNomorService = orderLama.NomorService;
+
+            // Susun Rincian Item untuk arsip
             string rincianItem = orderLama.ItemService;
             if (serviceLog.ServiceLogDetails != null && serviceLog.ServiceLogDetails.Any())
             {
                 var listBarang = serviceLog.ServiceLogDetails
-                .Select(d => $"{d.JenisService}|{d.NamaBarang}")
-                .ToArray();
-
+                    .Select(d => $"{d.JenisService}|{d.NamaBarang}")
+                    .ToArray();
                 rincianItem = string.Join(",", listBarang);
             }
 
+            // 2. Buat Arsip Baru di Tabel SelesaiService
             var arsipBaru = new SelesaiService
             {
                 NomorService = orderLama.NomorService,
-                NamaCustomer = orderLama.NamaCustomer,
-                ItemService = rincianItem, 
+                NamaCustomer = namaCustomerSafe,
+                ItemService = rincianItem,
                 JadwalService = orderLama.JadwalService,
                 NoWA = orderLama.NoWA,
                 Alamat = orderLama.Alamat,
@@ -385,49 +463,121 @@ namespace Pengguna.Controllers
                 TechnicianId = orderLama.TechnicianId,
                 NamaTeknisi = orderLama.NamaTeknisi,
                 TotalBiaya = serviceLog.TotalHarga,
-                WaktuSelesai = DateTime.Now
+                WaktuSelesai = DateTime.Now,
+
+                // --- POIN PENTING: Set Status Rating ke FALSE ---
+                IsRated = false
             };
 
             _context.SelesaiServices.Add(arsipBaru);
-            var logsToDelete = _context.ServiceLogs
-                .Where(s => s.WaitingResponOrder.NomorService == targetNomorService)
-                .ToList();
 
+            // 3. Hapus Data Lama (Bersih-bersih)
+            var logsToDelete = _context.ServiceLogs.Where(s => s.WaitingResponOrder.NomorService == targetNomorService).ToList();
             var logIds = logsToDelete.Select(l => l.Id).ToList();
+            var detailsToDelete = _context.ServiceLogDetails.Where(d => logIds.Contains(d.ServiceLogId)).ToList();
+            var orderToDelete = _context.WaitingResponOrders.Where(o => o.NomorService == targetNomorService).ToList();
 
-            var detailsToDelete = _context.ServiceLogDetails
-                .Where(d => logIds.Contains(d.ServiceLogId))
-                .ToList();
+            if (detailsToDelete.Any()) _context.ServiceLogDetails.RemoveRange(detailsToDelete);
+            if (logsToDelete.Any()) _context.ServiceLogs.RemoveRange(logsToDelete);
+            if (orderToDelete.Any()) _context.WaitingResponOrders.RemoveRange(orderToDelete);
 
-            var orderToDelete = _context.WaitingResponOrders
-                .Where(o => o.NomorService == targetNomorService)
-                .ToList();
-
-            if (detailsToDelete.Any())
-            {
-                _context.ServiceLogDetails.RemoveRange(detailsToDelete);
-            }
-
-            if (logsToDelete.Any())
-            {
-                _context.ServiceLogs.RemoveRange(logsToDelete);
-            }
-
-            if (orderToDelete.Any())
-            {
-                _context.WaitingResponOrders.RemoveRange(orderToDelete);
-            }
-
+            // Simpan Perubahan ke Database
             await _context.SaveChangesAsync();
 
-            // signalr notif
+            // 4. SignalR (Opsional / Backup)
+            // Tetap kita pasang sebagai "Trigger Cepat", tapi kalau gagal pun tidak masalah
+            // karena Customer nanti akan kena cegat di halaman utama.
             if (_hubContext != null)
             {
-                await _hubContext.Clients.Group($"Customer_{orderLama.NamaCustomer}")
-                    .SendAsync("UpdateReceived");
+                // Broadcast ke semua untuk memastikan notif status terkirim
+                await _hubContext.Clients.All.SendAsync("RedirectToRating", arsipBaru.Id);
             }
 
             return RedirectToAction("ValidasiPembayaran");
+        }
+        //garansi
+        public async Task<IActionResult> GaransiTech()
+        {
+                  var technicianName = HttpContext.Session.GetString("Username");
+
+                       if (string.IsNullOrEmpty(technicianName)) return RedirectToAction("Login", "Account");
+
+           var jobGaransi = await _context.WaitingResponOrders
+                .Where(w => w.NamaTeknisi == technicianName && w.NomorService.StartsWith("G-"))
+                .OrderByDescending(w => w.TanggalOrder)
+                .ToListAsync();
+
+            ViewData["ActivePage"] = "Garansi";
+
+            return View(jobGaransi);
+        }
+         [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> TakeJobGaransiNow(int id)
+        {
+            // 1. Cari Data Order
+            var order = await _context.WaitingResponOrders.FindAsync(id);
+            if (order == null) return NotFound();
+
+            // 2. Cek apakah sudah ada di ServiceLog (Mencegah duplikat)
+            var cekLog = await _context.ServiceLogs
+                .AnyAsync(s => s.WaitingResponOrderId == id);
+
+            if (cekLog)
+            {
+                TempData["Error"] = "Pekerjaan ini sudah ada di Active Job!";
+                return RedirectToAction("ActiveJobs");
+            }
+
+                     var newLog = new ServiceLog
+            {
+                WaitingResponOrderId = id,
+                TimeStart = DateTime.Now,
+                TotalHarga = 0,
+                StatusPembayaran = "Claim Garansi"
+            };
+
+            _context.ServiceLogs.Add(newLog);
+            order.Status = "Sedang Dikerjakan";
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Job Garansi dimulai! Silakan cek Active Job.";
+            return RedirectToAction("ActiveJobs");
+        }
+
+        // ---------------------------------------------------------
+        // PERBAIKAN: SCHEDULE JOB
+        // ---------------------------------------------------------
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ScheduleJobGaransi(int id, DateTime jadwalPengerjaan)
+        {
+            var order = await _context.WaitingResponOrders.FindAsync(id);
+            if (order == null) return NotFound();
+
+            if (jadwalPengerjaan < DateTime.Now)
+            {
+                TempData["Error"] = "Jadwal tidak boleh di waktu lampau!";
+                return RedirectToAction("Garansi");
+            }
+
+            // HAPUS property yang error di sini juga
+            var newLog = new ServiceLog
+            {
+                WaitingResponOrderId = id,
+                TimeStart = jadwalPengerjaan,
+                TotalHarga = 0,
+                StatusPembayaran = "Claim Garansi"
+            };
+
+            _context.ServiceLogs.Add(newLog);
+            order.Status = "Terjadwal";
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"Job dijadwalkan pada {jadwalPengerjaan.ToString("dd MMM HH:mm")}. Cek Active Job.";
+            return RedirectToAction("ActiveJobs");
         }
     }
 }

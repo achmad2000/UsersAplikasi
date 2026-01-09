@@ -1,0 +1,194 @@
+﻿@model IEnumerable<Pengguna.Models.SelesaiService>
+@{
+    ViewData["Title"] = "Garansi Saya";
+    Layout = "_LayoutCustomer";
+    ViewData["ActivePage"] = "Garansi";
+    var listKlaim = ViewBag.ListKlaim as IEnumerable<Pengguna.Models.Garansi>;
+}
+
+<div class="container mt-4 mb-5">
+
+    <div class="text-center mb-4">
+        <h3><i class="bi bi-shield-check text-primary"></i> Layanan Garansi</h3>
+        <p class="text-muted">Pantau status garansi dan pengajuan klaim Anda di sini.</p>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row">
+
+        <div class="col-lg-6 mb-4">
+            <h5 class="fw-bold mb-3 text-primary border-bottom pb-2">
+                <i class="bi bi-box-seam"></i> Unit Bisa Diklaim
+            </h5>
+
+            @if (!Model.Any())
+            {
+                <div class="text-center py-4 text-muted bg-light rounded">
+                    Tidak ada unit dalam masa garansi.
+                </div>
+            }
+            else
+            {
+                @foreach (var item in Model)
+                {
+                    var sisaHari = 30 - (DateTime.Now - item.WaktuSelesai.Value).Days;
+                    if (sisaHari < 0) sisaHari = 0;
+
+                    // Cek apakah sedang ditinjau
+                    bool isPending = listKlaim.Any(g => g.NomorServiceRef == item.NomorService && g.Status == "Menunggu Review");
+
+                    <div class="card shadow-sm mb-3 border-start border-4 @(isPending ? "border-secondary" : "border-info")">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="fw-bold mb-1">@item.NomorService</h6>
+                                    <div class="small text-muted mb-2">@item.ItemService</div>
+                                    <span class="badge bg-light text-dark border">
+                                        Sisa Garansi: <strong>@sisaHari Hari</strong>
+                                    </span>
+                                </div>
+
+                                @if (isPending)
+                                {
+                                    <button class="btn btn-sm btn-secondary" disabled>
+                                        <i class="bi bi-hourglass-split"></i> Sedang Ditinjau
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalKlaim-@item.NomorService">
+                                        Ajukan Klaim
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal fade" id="modalKlaim-@item.NomorService" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+
+                                <form asp-action="AjukanKlaim" method="post" enctype="multipart/form-data">
+
+                                    <div class="modal-header bg-danger text-white">
+                                        <h5 class="modal-title">Form Pengajuan Garansi</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    </div>
+
+                                    <div class="modal-body">
+                                        <input type="hidden" name="nomorService" value="@item.NomorService" />
+                                        <input type="hidden" name="item" value="@item.ItemService" />
+
+                                        <div class="mb-3">
+                                            <label class="fw-bold">Unit:</label>
+                                            <div>@item.ItemService (@item.NomorService)</div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">Keluhan Kerusakan:</label>
+                                            <textarea name="keluhan" class="form-control" rows="3" required placeholder="Ceritakan kendala..."></textarea>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">Foto Bukti Kerusakan (Opsional):</label>
+                                            <input type="file" name="fotoKerusakan" class="form-control" accept="image/*" />
+                                            <div class="form-text small">Upload foto bagian yang bermasalah agar admin lebih cepat memproses.</div>
+                                        </div>
+
+                                    </div>
+
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                        <button type="submit" class="btn btn-danger">Kirim Pengajuan</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+
+        <div class="col-lg-6">
+            <h5 class="fw-bold mb-3 text-secondary border-bottom pb-2">
+                <i class="bi bi-list-check"></i> Status Pengajuan
+            </h5>
+
+            @if (listKlaim == null || !listKlaim.Any())
+            {
+                <div class="text-muted small fst-italic">Belum ada pengajuan garansi.</div>
+            }
+            else
+            {
+                <div class="list-group shadow-sm">
+                    @foreach (var g in listKlaim)
+                    {
+                        // Logika Tampilan Badge Status
+                        string badgeClass = "";
+                        string badgeText = "";
+
+                        if (g.Status == "Menunggu Review")
+                        {
+                            badgeClass = "bg-warning text-dark";
+                            badgeText = "Sedang Ditinjau"; // <-- Teks sesuai permintaan
+                        }
+                        else if (g.Status == "Disetujui")
+                        {
+                            badgeClass = "bg-success";
+                            badgeText = "Disetujui (Teknisi OTW)";
+                        }
+                        else if (g.Status == "Ditolak")
+                        {
+                            badgeClass = "bg-danger";
+                            badgeText = "Ditolak";
+                        }
+
+                        <div class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1 fw-bold text-dark">@g.ItemService</h6>
+                                <small class="text-muted">@g.TanggalKlaim.ToString("dd/MM/yyyy HH:mm")</small>
+                            </div>
+
+                            <p class="mb-2 small text-muted fst-italic">"@g.DeskripsiKeluhan"</p>
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge @badgeClass rounded-pill">
+                                    @if (g.Status == "Menunggu Review")
+                                    {
+                                        <span class="spinner-grow spinner-grow-sm me-1" style="width: 0.5rem; height: 0.5rem;"></span>
+                                    }
+                                    @badgeText
+                                </span>
+                                <small class="text-muted" style="font-size: 0.75rem">Ref: @g.NomorServiceRef</small>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(g.CatatanAdmin))
+                            {
+                                <div class="mt-2 p-2 bg-light border rounded small text-secondary">
+                                    <i class="bi bi-chat-left-quote-fill me-1"></i> <strong>Admin:</strong> @g.CatatanAdmin
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+    </div>
+</div>

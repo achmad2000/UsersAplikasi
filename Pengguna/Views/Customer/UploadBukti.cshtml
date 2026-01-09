@@ -1,0 +1,82 @@
+﻿@model Pengguna.Models.ServiceLog
+@{
+    ViewData["Title"] = "Upload Bukti Transfer";
+    Layout = "_LayoutCustomer";
+}
+
+<div class="container mt-4 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+
+            <div class="card shadow border-0">
+                <div class="card-header bg-primary text-white text-center py-3">
+                    <h5 class="mb-0">Instruksi Pembayaran</h5>
+                </div>
+
+                <div class="card-body p-4">
+
+                    <div class="text-center mb-4">
+                        <small class="text-muted">Total Tagihan</small>
+                        <h2 class="fw-bold text-primary">@Model.TotalHarga.ToString("Rp #,##0")</h2>
+                        <span class="badge bg-light text-dark border mt-1">@Model.WaitingResponOrder.NomorService</span>
+                    </div>
+
+                    <div class="alert alert-info small">
+                        <i class="bi bi-info-circle-fill me-1"></i>
+                        Silakan transfer sesuai nominal di atas ke rekening berikut:
+                    </div>
+
+                    <div class="bg-light p-3 rounded border mb-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="bg-white p-2 rounded border me-3 fw-bold text-primary">BCA</div>
+                            <div>
+                                <small class="d-block text-muted">Bank Central Asia</small>
+                                <strong class="fs-5" id="rekBCA">123 456 7890</strong>
+                            </div>
+                            <button class="btn btn-sm btn-link ms-auto" onclick="copyToClipboard('1234567890')">Salin</button>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="bg-white p-2 rounded border me-3 fw-bold text-primary">BRI</div>
+                            <div>
+                                <small class="d-block text-muted">Bank Rakyat Indonesia</small>
+                                <strong class="fs-5">0000 1234 5678</strong>
+                            </div>
+                        </div>
+                        <hr />
+                        <div class="text-center small text-muted">
+                            A/N: <strong>PT HOME SERVICE INDONESIA</strong>
+                        </div>
+                    </div>
+
+                    <form asp-action="ProsesUploadBukti" enctype="multipart/form-data" method="post">
+                        <input type="hidden" name="id" value="@Model.Id" />
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Upload Bukti Transfer</label>
+                            <input type="file" name="fileBukti" class="form-control" accept="image/*" required />
+                            <div class="form-text">Format: JPG, PNG, JPEG. Max 2MB.</div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-upload me-2"></i> Kirim Bukti
+                            </button>
+                            <a href="@Url.Action("StatusPembayaran", new { nomor = Model.WaitingResponOrder.NomorService })" class="btn btn-outline-secondary">
+                                Kembali
+                            </a>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text);
+        alert("Nomor rekening disalin!");
+    }
+</script>

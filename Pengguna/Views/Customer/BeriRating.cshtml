@@ -1,0 +1,36 @@
+﻿@model Pengguna.Models.SelesaiService
+@{
+    Layout = "_LayoutCustomer";
+}
+
+<div class="container mt-5">
+    <div class="card shadow text-center mx-auto" style="max-width: 500px;">
+        <div class="card-body p-5">
+            <div class="mb-4">
+                <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                <h3 class="fw-bold mt-2">Service Selesai!</h3>
+                <p class="text-muted">Pembayaran Anda telah dikonfirmasi oleh teknisi.</p>
+            </div>
+
+            <h5 class="fw-bold">Bagaimana pelayanan kami?</h5>
+            <p class="small">Beri bintang dan ulasan untuk @Model.NamaTeknisi</p>
+
+            <form asp-action="SimpanRating" method="post">
+                <input type="hidden" name="id" value="@Model.Id" />
+
+                <div class="rating-css mb-3">
+                    <div class="d-flex justify-content-center gap-3 fs-2 text-warning">
+                                      <label><input type="radio" name="jumlahBintang" value="5" checked /> ⭐⭐⭐⭐⭐</label>
+                    </div>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <textarea class="form-control" name="ulasan" placeholder="Tulis pesan..." style="height: 100px" required></textarea>
+                    <label>Tulis ulasan Anda disini...</label>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Kirim Penilaian</button>
+            </form>
+        </div>
+    </div>
+</div>
